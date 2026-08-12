@@ -20,9 +20,9 @@
   linkcolor=linkblue,
   citecolor=linkblue,
   urlcolor=linkblue,
-  pdftitle={Open Sites: A Typed Process Schema},
+  pdftitle={Open Sites: From Compossibility},
   pdfauthor={Latent-Actual Project},
-  pdfsubject={A Lean-native successor schema},
+  pdfsubject={A Lean-native successor schema}
 }
 
 \setlength{\emergencystretch}{3em}
@@ -31,13 +31,11 @@
 \newtheorem{formalresult}{Formal result}[section]
 \theoremstyle{definition}
 \newtheorem{definition}[formalresult]{Definition}
-\theoremstyle{remark}
-\newtheorem*{qualification}{Qualification}
 
 \newcommand{\lean}[1]{\nolinkurl{#1}}
 
 \title{\textbf{Open Sites}\\[0.45em]
-  \large A typed process schema that Lean can actually hold}
+  \large Start from compossibility}
 \author{Latent--Actual Project}
 \date{August 2026}
 
@@ -45,169 +43,103 @@
 \maketitle
 
 \begin{abstract}
-The binary latent--actual development proved a coherent package, then asked
-that package to be time, space, causation, observation, and continuous
-determination as well. Those are different jobs. This note proposes a
-successor schema whose primitives match the distinctions type theory can
-check: kinds as types of values, sites with remainder, acts that settle a
-value, time as the ranked ancestral of acts, coexistence as joint actuality,
-causation as one-step acting, and appearance that is not realisation. A Lean
-4 file, \texttt{OpenSite.lean}, checks the core theorems, a void
-countermodel, and a world with three-valued hue, two places, reserved
-remainder, illusion, and a supplied $\omega$-history.
+A step is already ordinal, so a metaphysics that takes acts as primitive
+gets time almost free and has nowhere for extension to come from. This
+note starts from which determinations can be settled together. Space is
+the independence structure of that coherence; locality is a theorem
+about amalgamation; time is the ancestral of articulative growth, kept
+apart from revision. Lean~4 checks the load-bearing claims in
+\texttt{OpenSite.lean}.
 \end{abstract}
 
 \section{The diagnosis}
 
-The binary field was a good engine for one question: can local determinacy
-coexist with permanent latency, qualitative reversal, and modal excess over
-selection? It answered that question. It is a poor engine for every
-neighbouring question, because almost every headline theorem used unique
-contrariety --- \lean{flip}, \lean{pole\_dichotomy}, promote-then-turn,
-$e=\overline{d}$.
+The binary latent--actual development, and the first draft of Open Sites,
+both took a step as primitive. Seed, cadence, offer, rank, and
+\lean{Continues.persists} are elaborations of that sequential peg.
+\lean{Continues.persists} stipulated that an act disturbs one kind, which
+is exactly the clause that prevents spatial content: nothing in the
+primitive said which determinations constrain which.
 
-Generalising the field while keeping those theorems is not a lemma. Encoding
-time in traces, space in archive incomparability, and observation in
-co-realisation produced names that outran their content. The honest move is
-not a wider binary schema. It is a stratified one.
-
-\paragraph{Do not encode. Stratify.}
-Give each metaphysical job its own primitive. Prove only what that primitive
-yields. When a further phenomenon is wanted, add a further primitive, not a
-pun.
+The test is: for each target notion, complete ``$X$ would be ---, in
+terms of the primitives.'' If the sentence has no completion, the notion
+will not be derived. Under an act-first schema, ``space would be ---''
+has none. Under compossibility it completes: space is the structure of
+what can be settled together.
 
 \section{The schema}
 
 \begin{definition}[Ontology]
-An ontology supplies a type of kinds, a value type for each kind, and a
-predicate \emph{exclusive} on kinds. A determinate is a value of a kind.
-Exclusivity is optional: exclusive kinds realise at most one value at a
-site; non-exclusive kinds may realise several.
+Kinds are types of values. Exclusivity is optional. Binary opposition is
+a property of some kinds, not the shape of the field.
 \end{definition}
 
-Binary opposition is a \emph{property of a kind}
-(\lean{Ontology.Dichotomous}), not the shape of the cosmos. A hue with three
-values is first-class. A continuous kind is a kind whose value type is
-whatever ordered magnitude one later supplies. The schema does not construct
-the reals; it also does not forbid them.
-
-\begin{definition}[Site]
-A site articulates kinds and realises values. Realisation implies
-articulation. Exclusive kinds realise at most one value. Remainder is a site
-law: every site has an articulated kind with no realised value.
+\begin{definition}[Coherence]
+A pairwise compatibility relation on determinations, reflexive and
+symmetric, and irreflexive on distinct values of an exclusive kind.
+Higher-order (Borromean) constraints are declined: with those, locality
+would again be a stipulation.
 \end{definition}
 
-Remainder is not a theorem of the kind/value distinction. The void model
-satisfies remainder while realising nothing. Actuality is not derived from
-presentation.
+A configuration is an admissible partial assignment together with an
+articulation predicate. Latency is already threefold: settled for,
+settled against (exclusive contrary), or unset. Articulation accumulates;
+values vary. Those are two structures, so the arrow of time and
+oscillation do not compete for one relation.
 
-\begin{definition}[Act]
-An act from $s$ to $t$ settles one value at one kind, preserves realisation
-at every other kind, and does not delete prior articulation. Dynamics add a
-rank that every act advances.
+\begin{definition}[Independence]
+Kinds $k$ and $\ell$ are independent when every pair of values is
+compatible.
 \end{definition}
 
-The rank is an honest historicity premise --- a clock, not a memory and not
-a phenomenology. Without it, ancestry need not be acyclic. With it, the
-ancestral of acts is a strict order.
-
-\begin{formalresult}[Time as ancestry]
-\lean{Earlier} is irreflexive, transitive, and asymmetric.
-Off-target realised content persists through one act.
+\begin{formalresult}[Locality is a theorem]
+If $k$ and $\ell$ are independent and both are open at $\sigma$, then
+coherent settlements of each amalgamate to a coherent joint settlement,
+the two orders of update agree, and what is settable at $\ell$ is
+unchanged by settling $k$.
 \end{formalresult}
 
-\begin{formalresult}[Productivity is not completed succession]
-Seriality (\lean{Productive}) yields arbitrarily long finite chains, as a
-propositional existence. A completed $\omega$-history is extra data: a
-function $\mathbb{N}\to\mathrm{Carrier}$ with a step at every index. The
-abstract implication from seriality to such a function is countable
-dependent choice, which the file does not assume. The world model
-\emph{supplies} a history.
-\end{formalresult}
+This is \lean{independent\_amalgamate}, \lean{independent\_commute}, and
+\lean{independent\_settable\_iff}. The world model witnesses the
+complement: switch-off and lamp-on are each admissible and jointly not
+(\lean{interaction\_blocks\_amalgamation}). Space here constrains what
+can happen. It is adjacency and independence, not dimension or metric.
 
-This is the one old open problem that was already a missing theorem rather
-than a missing phenomenon. It is now proved, and the two notions are not
-identified.
-
-\section{Selection, space, cause, appearance}
-
-If an open kind has two values and both are possible targets, no selector is
-respected (\lean{richAt\_exceeds\_selector}). Plenitude is local to a
-workable kind. Remainder may be a reserved, unsettleable kind. The world
-model uses a gap of that form, so remainder and modal excess do not fight.
-
-\begin{definition}[Coexistence]
-A coexistence relation is reflexive and symmetric, and incompatible with
-\lean{Earlier}.
+\begin{definition}[Passages]
+Settling fills an open kind. Growing articulates a new kind, same
+assignment. Revising changes a value, same articulation. Time
+(\lean{Earlier}) is the ancestral of growth only.
 \end{definition}
 
-Joint actuality is the spatial primitive. It is not geometry. It is also not
-archive incomparability: two possible successors of one site are not thereby
-co-present. The world model has two locations at clock zero that are
-together and not temporally ordered.
+Existential force sits in one place: plenitude says every coherent settle
+of an open kind is possible. Coherence alone does not yield a successor
+(\lean{productivity\_is\_not\_coherence\_level}). Observation is
+restriction to a region of kinds --- veridical access, not consciousness.
+Illusion is a further primitive and is not derived from restriction.
 
-\begin{definition}[Direct cause]
-$s$ directly causes $t$ when some act runs from $s$ to $t$.
-\end{definition}
+\section{Scope}
 
-Every direct cause is earlier. The converse fails on a two-step run: the
-endpoint is later, not a one-step successor. Causation is not identified
-with temporal precedence, and the distinction uses no extra causal
-primitive beyond the act itself. Counterfactuals and prehension remain
-outside.
+Adjacency, independence, commuting updates, ordinal succession, and
+topological extension, yes. Dimension, metric, signature, phenomenal
+duration, and embodiment, no. A coherence complex has a shape; nothing
+so far makes that shape three-dimensional. Causal set theory has been
+stuck at the analogous point with more machinery. A construction that
+succeeds at a stated target beats one that half-succeeds at an unstated
+one.
 
-\begin{definition}[Appearance]
-An observer-relation of appearing is not required to coincide with
-realisation. Veridical appearance is the conjunction; illusion is appearance
-without realisation.
-\end{definition}
-
-The old observer layer forbade illusion by co-realisation. Here illusion is
-inhabited in the world model (a low pulse that appears high). Location of
-an observer is a constraint on appearance, not a lived body.
-
-\section{What is closed, and what is not}
-
-Relative to the old remaining-work paragraph:
-
-\begin{center}
-\small
-\begin{tabular}{@{}p{0.42\linewidth}p{0.52\linewidth}@{}}
-\toprule
-Old omission & Status in Open Sites \\
-\midrule
-Plural determination & Closed as kinds with $n$ values; hue is trichotomous. \\
-Productivity vs $\omega$-history & Closed as two theorems, not identified. \\
-Formal future & The converse of \lean{Earlier}; not marked at the source. \\
-Space & Coexistence, disjoint from time; not geometry. \\
-Causation & Direct act vs ancestry; not a causal calculus. \\
-Observation & Appearance, with illusion; not consciousness. \\
-Continuous / metric time & Still outside (needs an ordered magnitude). \\
-Phenomenal duration, embodiment & Still outside (would be further primitives). \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-The last items are outside because they need further primitives, not because
-a binary field was too narrow. That is the methodological gain: new premises
-can be added \emph{as themselves}, and their consequences proved rather than
-suggested by renaming.
-
-The binary development is not retracted. It remains a correct special case:
-when a kind is exclusive and dichotomous, settlement orients one value and
-excludes the other (\lean{dichotomous\_orients}). Cadence and swirl can be
-reintroduced later as optional structure on a strand, not as the engine of
-every kind.
+What is carried over from the binary project: unlabelled (now un-$n$-ary)
+kinds, plenitude as the unique existential, internal articulation from
+the start, and the impossibility results as design constraints. What is
+rejected: a binary-only field; identifying observation with restriction
+so tightly that illusion becomes inexpressible; claiming metric structure.
 
 \section{Check}
-
-The Lean source imports only \texttt{Init}. Under Lean~4.24.0:
 
 \begin{verbatim}
 elan run leanprover/lean4:v4.24.0 lean OpenSite.lean
 \end{verbatim}
 
-A successful check exits without output. The file contains no
-\texttt{axiom}, \texttt{sorry}, \texttt{admit}, or \texttt{native\_decide}.
+A successful check exits without output. No \texttt{axiom},
+\texttt{sorry}, \texttt{admit}, or \texttt{native\_decide}.
 
 \end{document}

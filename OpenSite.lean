@@ -1,809 +1,738 @@
 import Init
 
 /-!
-# Open Sites
+# Open Sites, from compossibility
 
-A successor schema, not a patch of `LatentActual`.  The binary development
-asked one \(\mathbb{Z}/2\)-torsor to be determinacy, change, latency, time,
-reversal, and (in prospect) space, causation, and observation.  Those are
-different jobs.  Lean will hold a metaphysics that *gives each job its own
-primitive* and then proves only what those primitives actually yield.
+The first draft of this file still took a *step* as primitive.  A step is
+already ordinal, so time came almost free and extension had nowhere to
+come from: `Continues.persists` stipulated that an act disturbs one kind,
+and `Coexistence` was bolted on as a second relation between sites.  That
+is the same square peg as seed, cadence, and offer.
 
-**Do not encode. Stratify.**
+**Start from which determinations can be settled together.**  A field of
+kinds plus a coherence structure of pairwise compatibility.  Configurations
+are admissible partial settlements.  Everything else is defined from that.
 
-| Job | Primitive here | What is *not* claimed |
+| Target | Completes as | Out of scope |
 | --- | --- | --- |
-| Determinacy | a value of a kind (`Value k`) | that every kind has two poles |
-| Exclusivity | a property of *some* kinds | that all determination is exclusive |
-| Latency | non-realization, stratified by articulation | powers, propensities, degrees |
-| Remainder | every site has an unsettled articulated kind | that this is phenomenology |
-| Becoming | acts that settle a value at a kind | a unique successor |
-| Time | the ancestral of acts, ranked | metric, continuous, or lived duration |
-| Possibility | the act relation | possible worlds |
-| Actuality | a strand (a function of steps) | that seriality *is* that function |
-| Space | coexistence of sites | geometry, metric, embodiment |
-| Causation | one-step acting | counterfactuals, prehension |
-| Observation | appearance, not implied by realization | consciousness, givenness |
+| Latency | settled for, settled against, or unset | powers, degrees |
+| Space | independence / interaction in the coherence structure | dimension, metric, signature |
+| Locality | independent settlements amalgamate | a stipulated one-kind act |
+| Time | chains of *articulative* growth | metric or lived duration |
+| Oscillation | revision of a value at fixed articulation | competing with the arrow |
+| Possibility | the one existential: every coherent settle/revise | possible worlds |
+| Observation | restriction to a region of kinds | consciousness; illusion is extra |
+| Concurrency | commuting updates on independent kinds | relativistic spacetime |
 
-The intended philosophical remainder of the old project is kept, and
-detached from binary opposition: actuality can be locally determinate
-without exhausting what a site leaves open; the possible can exceed a
-single selection whenever some open kind has two values; time is not
-space; a completed infinite history is extra data, not a synonym of
-one-step productivity.
+What is absorbed from the sequential diagnosis: unlabelled (now un-n-ary)
+kinds, plenitude as the unique existential, internal articulation from the
+start, and the impossibility results as design constraints.  What is
+rejected: reverting to a binary-only field; identifying observation with
+restriction so tightly that illusion becomes inexpressible; claiming
+dimension or metric.
 
-No `axiom`, no `sorry`, no `native_decide`.  Binary kinds remain as a
-*special case* (`Dichotomous`), not as the engine of the cosmos.
+The load-bearing claim, tested below: **locality is a theorem.**  If two
+kinds are independent, coherent settlements of each amalgamate to a
+coherent joint settlement, and the two orders of update agree.
 -/
 
 namespace OpenSite
 
-universe u v w
+universe u v
 
 /-! ## 0. Ontology: kinds as types of values -/
 
-/-- A kind is a determinable.  Its values are its determinates.
-Exclusivity is optional: an exclusive kind realises at most one value at a
-site; a non-exclusive kind may realise several (a chord, a mixture). -/
 structure Ontology where
   Kind : Type u
   Value : Kind → Type v
   Exclusive : Kind → Prop
+  decEqKind : DecidableEq Kind
 
 namespace Ontology
 
 variable (O : Ontology.{u,v})
 
-def Incompatible {k : O.Kind} (x y : O.Value k) : Prop :=
-  O.Exclusive k ∧ x ≠ y
+structure Det where
+  kind : O.Kind
+  value : O.Value kind
 
-/-- Two values, no third: the old binary schema, as a *property of a kind*. -/
 def Dichotomous (k : O.Kind) : Prop :=
   ∃ a b : O.Value k, a ≠ b ∧ ∀ c, c = a ∨ c = b
 
 end Ontology
 
-/-! ## 1. Sites -/
+/-! ## 1. Assignments -/
 
-/-- A site is a local presentation of kinds.  Articulation is not
-realisation.  Remainder is a site law, not a theorem of logic: nothing in
-the kind/value distinction forces an unsettled kind to exist. -/
-structure Sites (O : Ontology.{u,v}) where
-  Carrier : Type w
-  articulated : Carrier → O.Kind → Prop
-  realises : (s : Carrier) → (k : O.Kind) → O.Value k → Prop
-  realises_articulates :
-    ∀ {s k v}, realises s k v → articulated s k
-  exclusive_unique :
-    ∀ {s k v w}, O.Exclusive k →
-      realises s k v → realises s k w → v = w
-  remainder :
-    ∀ s, ∃ k, articulated s k ∧ ∀ v, ¬ realises s k v
+def Assignment (O : Ontology.{u,v}) :=
+  (k : O.Kind) → Option (O.Value k)
 
-namespace Sites
+namespace Assignment
 
-variable {O : Ontology.{u,v}} (S : Sites.{u,v,w} O)
+variable {O : Ontology.{u,v}}
 
-def Open (s : S.Carrier) (k : O.Kind) : Prop :=
-  S.articulated s k ∧ ∀ v, ¬ S.realises s k v
+def empty : Assignment O := fun _ => none
 
-def Settled (s : S.Carrier) (k : O.Kind) : Prop :=
-  ∃ v, S.realises s k v
+def set (σ : Assignment O) (k : O.Kind) (v : O.Value k) : Assignment O :=
+  fun k' =>
+    haveI := O.decEqKind
+    if h : k' = k then some (h.symm ▸ v) else σ k'
 
-def Undrawn (s : S.Carrier) (k : O.Kind) : Prop :=
-  ¬ S.articulated s k
+theorem set_self (σ : Assignment O) (k : O.Kind) (v : O.Value k) :
+    set σ k v k = some v := by
+  unfold set
+  rw [dif_pos rfl]
 
-def Latent (s : S.Carrier) (k : O.Kind) (v : O.Value k) : Prop :=
-  ¬ S.realises s k v
+theorem set_ne (σ : Assignment O) (k : O.Kind) (v : O.Value k)
+    (k' : O.Kind) (h : k' ≠ k) :
+    set σ k v k' = σ k' := by
+  unfold set
+  rw [dif_neg h]
 
-def Null (s : S.Carrier) : Prop :=
-  ∀ k v, ¬ S.realises s k v
+theorem set_comm {σ : Assignment O} {k ℓ : O.Kind}
+    (hne : k ≠ ℓ) (v : O.Value k) (w : O.Value ℓ) :
+    set (set σ k v) ℓ w = set (set σ ℓ w) k v := by
+  funext k'
+  haveI := O.decEqKind
+  by_cases hℓ : k' = ℓ
+  · rw [hℓ, set_self, set_ne (set σ ℓ w) k v ℓ (Ne.symm hne), set_self]
+  · by_cases hk : k' = k
+    · rw [hk, set_ne (set σ k v) ℓ w k hne, set_self, set_self]
+    · rw [set_ne _ _ _ _ hℓ, set_ne _ _ _ _ hk,
+          set_ne _ _ _ _ hk, set_ne _ _ _ _ hℓ]
 
-theorem open_of_remainder (s : S.Carrier) : ∃ k, S.Open s k :=
-  S.remainder s
+theorem set_set_left {σ : Assignment O} {k ℓ : O.Kind}
+    (hne : k ≠ ℓ) (v : O.Value k) (w : O.Value ℓ) :
+    set (set σ k v) ℓ w k = some v := by
+  rw [set_ne _ _ _ _ hne, set_self]
 
-theorem open_not_settled {s k} (h : S.Open s k) : ¬ S.Settled s k := by
-  intro ⟨v, hv⟩
-  exact h.2 v hv
+theorem set_set_right {σ : Assignment O} {k ℓ : O.Kind}
+    (v : O.Value k) (w : O.Value ℓ) :
+    set (set σ k v) ℓ w ℓ = some w :=
+  set_self _ _ _
 
-theorem settled_articulated {s k} (h : S.Settled s k) : S.articulated s k := by
-  obtain ⟨v, hv⟩ := h
-  exact S.realises_articulates hv
+theorem set_set_other {σ : Assignment O} {k ℓ k' : O.Kind}
+    (hk : k' ≠ k) (hℓ : k' ≠ ℓ) (v : O.Value k) (w : O.Value ℓ) :
+    set (set σ k v) ℓ w k' = σ k' := by
+  rw [set_ne _ _ _ _ hℓ, set_ne _ _ _ _ hk]
 
-theorem exclusive_settled_unique {s k}
-    (hex : O.Exclusive k) (h : S.Settled s k) :
-    ∃ v, S.realises s k v ∧ ∀ w, S.realises s k w → w = v := by
-  obtain ⟨v, hv⟩ := h
-  refine ⟨v, hv, ?_⟩
-  intro w hw
-  exact (S.exclusive_unique hex hv hw).symm
+/-- Dependent case split on a realised cell of `set`. -/
+theorem realised_set_cases {σ : Assignment O} {k k' : O.Kind}
+    {v : O.Value k} {v' : O.Value k'}
+    (h : set σ k v k' = some v') {P : Prop}
+    (self : (eq : k' = k) → (eq.symm ▸ v) = v' → P)
+    (other : k' ≠ k → σ k' = some v' → P) : P := by
+  haveI := O.decEqKind
+  by_cases hk' : k' = k
+  · subst hk'
+    have h' := h
+    rw [set_self] at h'
+    exact self rfl (Option.some.inj h')
+  · rw [set_ne _ _ _ _ hk'] at h
+    exact other hk' h
 
-/-- On a dichotomous exclusive kind, settlement orients one value and
-excludes the other.  This is the old `resolution_orients`, localised. -/
-theorem dichotomous_orients {s k}
-    (hex : O.Exclusive k) (hd : O.Dichotomous k) (h : S.Settled s k) :
-    ∃ a b : O.Value k,
-      a ≠ b ∧ S.realises s k a ∧ ¬ S.realises s k b ∧
-        ∀ c, c = a ∨ c = b := by
-  obtain ⟨a, b, hne, hall⟩ := hd
-  obtain ⟨v, hv, huniq⟩ := S.exclusive_settled_unique hex h
-  cases hall v with
-  | inl hva =>
-      refine ⟨a, b, hne, ?_, ?_, hall⟩
-      · rw [← hva]; exact hv
-      · intro hb
-        have : b = v := huniq b hb
-        exact hne (hva.symm.trans this.symm)
-  | inr hvb =>
-      refine ⟨b, a, hne.symm, ?_, ?_, ?_⟩
-      · rw [← hvb]; exact hv
-      · intro ha
-        have : a = v := huniq a ha
-        exact hne (this.trans hvb)
-      · intro c
-        cases hall c with
-        | inl hca => exact Or.inr hca
-        | inr hcb => exact Or.inl hcb
+end Assignment
 
-end Sites
+/-! ## 2. Coherence: pairwise compossibility -/
 
-/-! ## 2. Acts, rank, and time as ancestry -/
+/-- Pairwise compatibility of determinations.  Higher-order (Borromean)
+constraints are declined: with those, locality would again be a
+stipulation.  Binary compatibility is the weakest primitive from which
+amalgamation of independent regions is a theorem. -/
+structure Coherence (O : Ontology.{u,v}) where
+  compat : O.Det → O.Det → Prop
+  refl : ∀ d, compat d d
+  symm : ∀ {d e}, compat d e → compat e d
+  exclusive_incompat :
+    ∀ {k v w}, O.Exclusive k → v ≠ w →
+      ¬ compat ⟨k, v⟩ ⟨k, w⟩
 
-/-- An act settles one value at one kind, keeps other kinds' realisations,
-and does not delete prior articulation.  Time is *not* a field of this
-structure; it will be the ancestral of acts, once a rank forbids cycles. -/
-structure Continues {O : Ontology.{u,v}} (S : Sites.{u,v,w} O)
-    (s t : S.Carrier) (k : O.Kind) (v : O.Value k) : Prop where
-  settles : S.realises t k v
-  persists : ∀ k' v', k' ≠ k →
-    (S.realises s k' v' ↔ S.realises t k' v')
-  art_mono : ∀ k', S.articulated s k' → S.articulated t k'
+namespace Coherence
 
-namespace Continues
+variable {O : Ontology.{u,v}} (C : Coherence O)
 
-variable {O : Ontology.{u,v}} {S : Sites.{u,v,w} O}
+def PairwiseOk (σ : Assignment O) : Prop :=
+  ∀ k ℓ vk vl,
+    σ k = some vk → σ ℓ = some vl →
+      C.compat ⟨k, vk⟩ ⟨ℓ, vl⟩
 
-theorem off_target {s t k v k' v'}
-    (h : Continues S s t k v) (hne : k' ≠ k)
-    (hs : S.realises s k' v') : S.realises t k' v' :=
-  (h.persists k' v' hne).mp hs
+theorem pairwise_down {σ τ : Assignment O}
+    (h : C.PairwiseOk σ)
+    (hsub : ∀ k v, τ k = some v → σ k = some v) :
+    C.PairwiseOk τ :=
+  fun k ℓ vk vl hk hl => h k ℓ vk vl (hsub k vk hk) (hsub ℓ vl hl)
 
-theorem exclusive_target {s t k v w}
-    (h : Continues S s t k v) (hex : O.Exclusive k)
-    (hw : S.realises t k w) : w = v :=
-  S.exclusive_unique hex hw h.settles
+theorem empty_ok : C.PairwiseOk Assignment.empty :=
+  fun _ _ _ _ hk => by cases hk
 
-end Continues
+/-- Two kinds are independent when every pair of values is compatible.
+That is the spatial primitive: not a bag of locations, but the product
+structure of the coherence complex. -/
+def Independent (k ℓ : O.Kind) : Prop :=
+  k ≠ ℓ ∧ ∀ (v : O.Value k) (w : O.Value ℓ), C.compat ⟨k, v⟩ ⟨ℓ, w⟩
 
-/-- Dynamics: a lawful act relation together with a rank that every act
-advances.  The rank is an honest historicity premise — a clock, not a
-memory, not a phenomenology.  Without it, ancestry need not be acyclic. -/
-structure Dynamics {O : Ontology.{u,v}} (S : Sites.{u,v,w} O) where
-  Active : S.Carrier → S.Carrier → (k : O.Kind) → O.Value k → Prop
-  continues : ∀ {s t k v}, Active s t k v → Continues S s t k v
-  rank : S.Carrier → Nat
-  advances : ∀ {s t k v}, Active s t k v → rank s < rank t
+theorem independent_symm {k ℓ : O.Kind} :
+    C.Independent k ℓ → C.Independent ℓ k := by
+  intro ⟨hne, hall⟩
+  refine ⟨hne.symm, ?_⟩
+  intro w v
+  exact C.symm (hall v w)
 
-inductive Chain {O : Ontology.{u,v}} {S : Sites.{u,v,w} O}
-    (D : Dynamics S) : Nat → S.Carrier → S.Carrier → Prop
-  | refl (s : S.Carrier) : Chain D 0 s s
-  | step {n s t u k v} :
-      Chain D n s t → D.Active t u k v → Chain D (n + 1) s u
+def Interacts (k ℓ : O.Kind) : Prop :=
+  k ≠ ℓ ∧ ¬ C.Independent k ℓ
 
-namespace Dynamics
+/-- **Load-bearing locality.**  Independent coherent settlements amalgamate.
+A change at `k` does not constrain `ℓ`, and the joint assignment is
+admissible.  This is derived from compatibility, not stipulated as
+"an act disturbs one kind". -/
+theorem independent_amalgamate {k ℓ : O.Kind}
+    (hI : C.Independent k ℓ)
+    {σ : Assignment O} {v : O.Value k} {w : O.Value ℓ}
+    (hσk : σ k = none) (_hσℓ : σ ℓ = none)
+    (hk : C.PairwiseOk (Assignment.set σ k v))
+    (hℓ : C.PairwiseOk (Assignment.set σ ℓ w)) :
+    C.PairwiseOk (Assignment.set (Assignment.set σ k v) ℓ w) := by
+  intro k1 k2 v1 v2 h1 h2
+  have hσ : C.PairwiseOk σ :=
+    C.pairwise_down hk (fun k' v' hs => by
+      haveI := O.decEqKind
+      by_cases hk' : k' = k
+      · subst hk'
+        rw [hσk] at hs
+        cases hs
+      · rw [Assignment.set_ne _ _ _ _ hk']
+        exact hs)
+  refine Assignment.realised_set_cases h1 ?_ ?_
+  · intro eq1 heq1
+    cases eq1
+    cases heq1
+    refine Assignment.realised_set_cases h2 ?_ ?_
+    · intro eq2 heq2
+      cases eq2
+      cases heq2
+      exact C.refl _
+    · intro h2neL h2mid
+      refine Assignment.realised_set_cases h2mid ?_ ?_
+      · intro eqk heqk
+        cases eqk
+        cases heqk
+        exact C.symm (hI.2 v w)
+      · intro h2neK hs2
+        have : Assignment.set σ ℓ w k2 = some v2 := by
+          rwa [Assignment.set_ne _ _ _ _ h2neL]
+        exact hℓ ℓ k2 w v2 (Assignment.set_self _ _ _) this
+  · intro h1neL h1mid
+    refine Assignment.realised_set_cases h1mid ?_ ?_
+    · intro eqk heqk
+      cases eqk
+      cases heqk
+      refine Assignment.realised_set_cases h2 ?_ ?_
+      · intro eq2 heq2
+        cases eq2
+        cases heq2
+        exact hI.2 v w
+      · intro h2neL h2mid
+        refine Assignment.realised_set_cases h2mid ?_ ?_
+        · intro eqk2 heqk2
+          cases eqk2
+          cases heqk2
+          exact C.refl _
+        · intro h2neK hs2
+          have : Assignment.set σ k v k2 = some v2 := by
+            rwa [Assignment.set_ne _ _ _ _ h2neK]
+          exact hk k k2 v v2 (Assignment.set_self _ _ _) this
+    · intro h1neK hs1
+      refine Assignment.realised_set_cases h2 ?_ ?_
+      · intro eq2 heq2
+        cases eq2
+        cases heq2
+        have : Assignment.set σ ℓ w k1 = some v1 := by
+          rwa [Assignment.set_ne _ _ _ _ h1neL]
+        exact hℓ k1 ℓ v1 w this (Assignment.set_self _ _ _)
+      · intro h2neL h2mid
+        refine Assignment.realised_set_cases h2mid ?_ ?_
+        · intro eqk2 heqk2
+          cases eqk2
+          cases heqk2
+          have : Assignment.set σ k v k1 = some v1 := by
+            rwa [Assignment.set_ne _ _ _ _ h1neK]
+          exact hk k1 k v1 v this (Assignment.set_self _ _ _)
+        · intro h2neK hs2
+          exact hσ k1 k2 v1 v2 hs1 hs2
 
-variable {O : Ontology.{u,v}} {S : Sites.{u,v,w} O} (D : Dynamics S)
+/-- Independent updates commute as assignments *and* as admissible
+configurations: the diamond is a theorem. -/
+theorem independent_commute {k ℓ : O.Kind}
+    (hI : C.Independent k ℓ)
+    {σ : Assignment O} {v : O.Value k} {w : O.Value ℓ}
+    (hσk : σ k = none) (hσℓ : σ ℓ = none)
+    (hk : C.PairwiseOk (Assignment.set σ k v))
+    (hℓ : C.PairwiseOk (Assignment.set σ ℓ w)) :
+    Assignment.set (Assignment.set σ k v) ℓ w =
+      Assignment.set (Assignment.set σ ℓ w) k v ∧
+    C.PairwiseOk (Assignment.set (Assignment.set σ k v) ℓ w) :=
+  ⟨Assignment.set_comm hI.1 v w,
+    C.independent_amalgamate hI hσk hσℓ hk hℓ⟩
 
-theorem chain_rank_le {n s t} (h : Chain D n s t) :
-    D.rank s ≤ D.rank t := by
-  induction h with
-  | refl s => exact Nat.le_refl _
-  | @step n s t u k v c a ih =>
-      exact Nat.le_trans ih (Nat.le_of_lt (D.advances a))
+def Settable (σ : Assignment O) (k : O.Kind) (v : O.Value k) : Prop :=
+  C.PairwiseOk (Assignment.set σ k v)
 
-theorem chain_pos_rank {n s t} (h : Chain D n s t) (hn : n ≠ 0) :
-    D.rank s < D.rank t := by
-  induction h with
-  | refl s => exact absurd rfl hn
-  | @step n s t u k v c a ih =>
-      cases n with
-      | zero =>
-          cases c
-          exact D.advances a
-      | succ n =>
-          exact Nat.lt_trans (ih (Nat.succ_ne_zero n)) (D.advances a)
+/-- Constraint-locality: settling an independent kind does not change
+what remains settable at `ℓ`. -/
+theorem independent_settable_iff {k ℓ : O.Kind}
+    (hI : C.Independent k ℓ)
+    {σ : Assignment O} {v : O.Value k} {w : O.Value ℓ}
+    (hσk : σ k = none) (hσℓ : σ ℓ = none)
+    (hk : C.Settable σ k v) :
+    C.Settable σ ℓ w ↔ C.Settable (Assignment.set σ k v) ℓ w := by
+  constructor
+  · intro hℓ
+    exact C.independent_amalgamate hI hσk hσℓ hk hℓ
+  · intro hjoint
+    exact C.pairwise_down hjoint (fun k' v' hs =>
+      Assignment.realised_set_cases hs
+        (fun eq heq => by
+          cases eq
+          cases heq
+          exact Assignment.set_set_right v w)
+        (fun hne hsσ => by
+          haveI := O.decEqKind
+          by_cases h'k : k' = k
+          · subst h'k
+            rw [hσk] at hsσ
+            cases hsσ
+          · rw [Assignment.set_set_other h'k hne v w]
+            exact hsσ))
 
-/-- Concatenation of finite runs. -/
-theorem chain_add {m t u} (h₂ : Chain D m t u) :
-    ∀ {n s}, Chain D n s t → Chain D (n + m) s u := by
-  induction h₂ with
-  | refl t =>
-      intro n s h₁
-      rw [Nat.add_zero]
-      exact h₁
-  | @step m t u v k w c a ih =>
-      intro n s h₁
-      rw [Nat.add_succ]
-      exact Chain.step (ih h₁) a
+theorem settable_empty (k : O.Kind) (v : O.Value k) :
+    C.Settable Assignment.empty k v := by
+  intro k1 k2 v1 v2 h1 h2
+  refine Assignment.realised_set_cases h1 ?_ ?_
+  · intro eq1 heq1
+    cases eq1
+    cases heq1
+    refine Assignment.realised_set_cases h2 ?_ ?_
+    · intro eq2 heq2
+      cases eq2
+      cases heq2
+      exact C.refl _
+    · intro _ hs
+      cases hs
+  · intro _ hs
+    cases hs
 
-def Earlier (s t : S.Carrier) : Prop :=
-  ∃ n, n ≠ 0 ∧ Chain D n s t
+end Coherence
 
-theorem earlier_of_active {s t k v} (h : D.Active s t k v) :
-    D.Earlier s t :=
-  ⟨1, Nat.one_ne_zero, Chain.step (Chain.refl s) h⟩
+/-! ## 3. Configurations: admissible partial settlements
 
-theorem earlier_irrefl (s : S.Carrier) : ¬ D.Earlier s s := by
-  intro ⟨n, hn, hc⟩
-  exact Nat.lt_irrefl _ (D.chain_pos_rank hc hn)
+Articulation and assignment are two structures, not one.  Articulation
+accumulates (the archive).  Values vary (oscillation).  The arrow of time
+and the swirl therefore do not compete for the same relation.
+-/
 
-theorem earlier_trans {s t u} (h₁ : D.Earlier s t) (h₂ : D.Earlier t u) :
-    D.Earlier s u := by
-  obtain ⟨n, hn, hc₁⟩ := h₁
-  obtain ⟨m, hm, hc₂⟩ := h₂
-  refine ⟨n + m, ?_, D.chain_add hc₂ hc₁⟩
-  intro hnm
-  cases n with
-  | zero => exact hn rfl
-  | succ n =>
-      rw [Nat.succ_add] at hnm
-      exact Nat.succ_ne_zero _ hnm
+structure Config {O : Ontology.{u,v}} (C : Coherence O) where
+  articulated : O.Kind → Prop
+  assign : Assignment O
+  realised_articulated : ∀ k v, assign k = some v → articulated k
+  ok : C.PairwiseOk assign
 
-theorem earlier_asymm {s t} (h : D.Earlier s t) : ¬ D.Earlier t s :=
-  fun h' => D.earlier_irrefl s (D.earlier_trans h h')
+namespace Config
 
-/-- Off-target realised content persists through one act.  Persistence, not
-observation. -/
-theorem persists {s t k v k' v'}
-    (h : D.Active s t k v) (hne : k' ≠ k)
-    (hs : S.realises s k' v') : S.realises t k' v' :=
-  Continues.off_target (D.continues h) hne hs
+variable {O : Ontology.{u,v}} {C : Coherence O}
 
-/-- One-step seriality.  This is productivity.  It is not a completed
-infinite history. -/
-def Productive : Prop :=
-  ∀ s, ∃ t k v, D.Active s t k v
+def Open (s : Config C) (k : O.Kind) : Prop :=
+  s.articulated k ∧ s.assign k = none
 
-/-- Seriality yields arbitrarily long *finite* runs, as a `Prop`-level
-existence.  No function `Nat → Carrier` is constructed. -/
-theorem productive_unbounded (h : D.Productive) :
-    ∀ n s, ∃ t, Chain D n s t := by
-  intro n
-  induction n with
-  | zero =>
-      intro s
-      exact ⟨s, Chain.refl s⟩
-  | succ n ih =>
-      intro s
-      obtain ⟨t, ht⟩ := ih s
-      obtain ⟨u, k, v, ha⟩ := h t
-      exact ⟨u, Chain.step ht ha⟩
+def Settled (s : Config C) (k : O.Kind) : Prop :=
+  ∃ v, s.assign k = some v
 
-/-- A completed ω-history is extra data: a chosen successor at every
-index.  From `Productive` this would be countable dependent choice, which
-this file does not assume.  Models may still *supply* a history. -/
-structure History where
-  nth : Nat → S.Carrier
-  step : ∀ n, ∃ k v, D.Active (nth n) (nth (n + 1)) k v
+def Undrawn (s : Config C) (k : O.Kind) : Prop :=
+  ¬ s.articulated k
 
-theorem history_chain (H : History D) :
-    ∀ n, Chain D n (H.nth 0) (H.nth n) := by
-  intro n
-  induction n with
-  | zero => exact Chain.refl (H.nth 0)
-  | succ n ih =>
-      obtain ⟨k, v, ha⟩ := H.step n
-      exact Chain.step ih ha
+def Remainder (s : Config C) : Prop :=
+  ∃ k, Open s k
 
-theorem history_earlier (H : History D) (n : Nat) :
-    D.Earlier (H.nth n) (H.nth (n + 1)) := by
-  obtain ⟨k, v, ha⟩ := H.step n
-  exact D.earlier_of_active ha
+def Null (s : Config C) : Prop :=
+  ∀ k, s.assign k = none
 
-/-- Direct causation is one act.  Temporal precedence is ancestry.
-Every cause precedes; not every precedence is a direct cause. -/
-def Direct (s t : S.Carrier) : Prop :=
-  ∃ k v, D.Active s t k v
+def Settles (s t : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
+  Open s k ∧
+    t.assign = Assignment.set s.assign k v ∧
+    (∀ ℓ, t.articulated ℓ ↔ s.articulated ℓ)
 
-theorem direct_earlier {s t} (h : D.Direct s t) : D.Earlier s t := by
-  obtain ⟨k, v, ha⟩ := h
-  exact D.earlier_of_active ha
+def Grows (s t : Config C) : Prop :=
+  (∀ k, s.articulated k → t.articulated k) ∧
+    (∃ k, t.articulated k ∧ ¬ s.articulated k) ∧
+    t.assign = s.assign
 
-end Dynamics
+def Revises (s t : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
+  (∀ ℓ, t.articulated ℓ ↔ s.articulated ℓ) ∧
+    t.assign = Assignment.set s.assign k v ∧
+    ∃ w, s.assign k = some w ∧ w ≠ v
 
-/-! ## 3. Selection, and when the possible exceeds it -/
+def settle (s : Config C) (k : O.Kind) (v : O.Value k)
+    (ho : Open s k)
+    (hok : C.PairwiseOk (Assignment.set s.assign k v)) : Config C where
+  articulated := s.articulated
+  assign := Assignment.set s.assign k v
+  realised_articulated := by
+    intro k' v' hv'
+    haveI := O.decEqKind
+    by_cases hk' : k' = k
+    · subst hk'
+      exact ho.1
+    · rw [Assignment.set_ne s.assign k v k' hk'] at hv'
+      exact s.realised_articulated k' v' hv'
+  ok := hok
 
-structure Selector {O : Ontology.{u,v}} (S : Sites.{u,v,w} O) where
-  choose : (s : S.Carrier) → (k : O.Kind) → O.Value k
+theorem settle_settles (s : Config C) (k : O.Kind) (v : O.Value k)
+    (ho : Open s k)
+    (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
+    Settles s (settle s k v ho hok) k v :=
+  ⟨ho, rfl, fun _ => Iff.rfl⟩
 
-namespace Dynamics
+/-- Time's arrow: the ancestral of archive growth.  Revision does not
+enter this relation. -/
+inductive Earlier : Config C → Config C → Prop
+  | step {s t} : Grows s t → Earlier s t
+  | trans {s t u} : Earlier s t → Earlier t u → Earlier s u
 
-variable {O : Ontology.{u,v}} {S : Sites.{u,v,w} O} (D : Dynamics S)
+end Config
 
-def Respects (sel : Selector S) : Prop :=
-  ∀ {s t k v}, D.Active s t k v → v = sel.choose s k
+/-! ## 4. Possibility: the one existential -/
 
-/-- Plenitude *at a kind and site*: every value of that open kind heads
-some act.  This is not required of the remainder kind.  Remainder may be
-reserved and unsettleable; workable openness is a different kind. -/
-def RichAt (s : S.Carrier) (k : O.Kind) : Prop :=
-  S.Open s k ∧ ∀ v, ∃ t, D.Active s t k v
+/-- A coherent configuration need not have a successor.  The inert
+passage relation is empty; seriality is not a coherence-level fact. -/
+def InertPossible {O : Ontology.{u,v}} {C : Coherence O} :
+    Config C → Config C → Prop :=
+  fun _ _ => False
 
-/-- If an open kind has two values and both are possible targets, no
-selector is respected.  Binarity of the *whole field* is not required. -/
-theorem richAt_exceeds_selector {s k}
-    (hR : D.RichAt s k) {v w : O.Value k} (hne : v ≠ w)
-    (sel : Selector S) : ¬ D.Respects sel := by
+theorem inert_not_serial {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) :
+    ¬ ∃ t, InertPossible (C := C) s t :=
+  fun ⟨_, h⟩ => h
+
+theorem productivity_is_not_coherence_level {O : Ontology.{u,v}}
+    {C : Coherence O} (s : Config C) :
+    ¬ (∀ p : Config C, ∃ t, InertPossible (C := C) p t) :=
+  fun h => inert_not_serial s (h s)
+
+/-- Plenitude at an open kind: every pairwise-ok value is realised as a
+settle.  The configuration `settle` constructs the witness; plenitude is
+the decision to count every such witness as possible. -/
+def PlenitudeAt {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) : Prop :=
+  s.Open k ∧ ∀ v, C.Settable s.assign k v →
+    ∃ t, Config.Settles s t k v
+
+theorem plenitudeAt_of_open {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) (ho : s.Open k) :
+    PlenitudeAt s k :=
+  ⟨ho, fun v hok => ⟨s.settle k v ho hok, s.settle_settles k v ho hok⟩⟩
+
+structure Selector (O : Ontology.{u,v}) where
+  choose : (k : O.Kind) → O.Value k
+
+def RespectsSettles {O : Ontology.{u,v}} (C : Coherence O)
+    (sel : Selector O) : Prop :=
+  ∀ {s t : Config C} {k v}, Config.Settles s t k v → v = sel.choose k
+
+theorem plenitude_exceeds_selector {O : Ontology.{u,v}} {C : Coherence O}
+    {s : Config C} {k : O.Kind}
+    (hP : PlenitudeAt s k)
+    {v w : O.Value k} (hne : v ≠ w)
+    (hv : C.Settable s.assign k v)
+    (hw : C.Settable s.assign k w)
+    (sel : Selector O) :
+    ¬ RespectsSettles (C := C) sel := by
   intro hres
-  obtain ⟨t, htv⟩ := hR.2 v
-  obtain ⟨t', htw⟩ := hR.2 w
-  exact hne ((hres htv).trans (hres htw).symm)
+  obtain ⟨t, ht⟩ := hP.2 v hv
+  obtain ⟨t', ht'⟩ := hP.2 w hw
+  exact hne ((hres ht).trans (hres ht').symm)
 
-end Dynamics
+/-! ## 5. Observation as restricted access
 
-/-! ## 4. Coexistence (the spatial primitive, without geometry) -/
+A region is a predicate on kinds.  The restriction of a configuration to a
+region is a sub-configuration.  That is veridical access, not consciousness.
+Illusion is a further primitive and is not derived from restriction.
+-/
 
-/-- Joint actuality.  Coexistent sites are not temporally ordered.
-This is the distinction the archive-incomparability of the old development
-could not make: modal branching, temporal incomparability, and
-co-presence are different relations.  Here only co-presence is primitive;
-geometry would be a further structure on it. -/
-structure Coexistence {O : Ontology.{u,v}} {S : Sites.{u,v,w} O}
-    (D : Dynamics S) where
-  together : S.Carrier → S.Carrier → Prop
-  refl : ∀ s, together s s
-  symm : ∀ {s t}, together s t → together t s
-  not_time : ∀ {s t}, together s t → ¬ D.Earlier s t
+def Region (O : Ontology.{u,v}) := O.Kind → Bool
 
-namespace Coexistence
+def restrict {O : Ontology.{u,v}} (σ : Assignment O) (r : Region O) :
+    Assignment O :=
+  fun k => if r k then σ k else none
 
-variable {O : Ontology.{u,v}} {S : Sites.{u,v,w} O} {D : Dynamics S}
-variable (C : Coexistence D)
+theorem restrict_sub {O : Ontology.{u,v}} {C : Coherence O}
+    {σ : Assignment O} (h : C.PairwiseOk σ) (r : Region O) :
+    C.PairwiseOk (restrict σ r) :=
+  C.pairwise_down h (fun k v hv => by
+    unfold restrict at hv
+    split at hv
+    · exact hv
+    · cases hv)
 
-theorem time_not_together {s t} (h : D.Earlier s t) : ¬ C.together s t :=
-  fun ht => C.not_time ht h
+theorem restrict_agrees {O : Ontology.{u,v}}
+    (σ : Assignment O) (r : Region O) (k : O.Kind) (hr : r k = true) :
+    restrict σ r k = σ k := by
+  unfold restrict
+  rw [hr]
+  rfl
 
-theorem irrefl_of_earlier (s : S.Carrier) : ¬ D.Earlier s s :=
-  D.earlier_irrefl s
-
-end Coexistence
-
-/-! ## 5. Appearance, without co-realization -/
-
-/-- Observation is a relation of appearing, not a synonym of realisation.
-Illusion is therefore possible.  The old `ObserverLayer` forbade it by
-requiring co-realization. -/
-structure Appearance {O : Ontology.{u,v}} (S : Sites.{u,v,w} O) where
-  Observer : Type
-  appears : Observer → S.Carrier → (k : O.Kind) → O.Value k → Prop
-
-namespace Appearance
-
-variable {O : Ontology.{u,v}} {S : Sites.{u,v,w} O} (A : Appearance S)
-
-def Veridical (o : A.Observer) (s : S.Carrier)
-    (k : O.Kind) (v : O.Value k) : Prop :=
-  A.appears o s k v ∧ S.realises s k v
-
-def Illusion (o : A.Observer) (s : S.Carrier)
-    (k : O.Kind) (v : O.Value k) : Prop :=
-  A.appears o s k v ∧ ¬ S.realises s k v
-
-/-- Location constraint, not a body, not a phenomenology. -/
-structure Located (A : Appearance S) where
-  locOf : A.Observer → S.Carrier → Prop
-  only_located : ∀ {o s k v}, A.appears o s k v → locOf o s
-
-end Appearance
-
-/-! ## 6. The void: remainder without actuality -/
+/-! ## 6. The void -/
 
 namespace Void
 
 inductive K where
   | star
+  deriving DecidableEq
 
 abbrev ont : Ontology.{0,0} where
   Kind := K
   Value := fun _ => Bool
   Exclusive := fun _ => True
+  decEqKind := inferInstance
 
-abbrev sites : Sites.{0,0,0} ont where
-  Carrier := Unit
-  articulated := fun _ _ => True
-  realises := fun _ _ _ => False
-  realises_articulates := fun h => False.elim h
-  exclusive_unique := fun _ h => False.elim h
-  remainder := fun _ => ⟨K.star, trivial, fun _ h => h⟩
+def compat : ont.Det → ont.Det → Prop
+  | ⟨.star, a⟩, ⟨.star, b⟩ => a = b
 
-theorem null : sites.Null () := fun _ _ h => h
+abbrev coh : Coherence ont where
+  compat := compat
+  refl := by intro d; cases d with | mk k v => cases k; exact rfl
+  symm := by
+    intro d e h
+    cases d with | mk k₁ v₁ =>
+    cases e with | mk k₂ v₂ =>
+    cases k₁; cases k₂
+    exact h.symm
+  exclusive_incompat := by
+    intro k v w _ hne h
+    cases k
+    exact hne h
 
-theorem open_star : sites.Open () K.star :=
-  ⟨trivial, fun _ h => h⟩
+def emptyCfg : Config coh where
+  articulated := fun _ => True
+  assign := Assignment.empty
+  realised_articulated := fun _ _ h => by cases h
+  ok := coh.empty_ok
 
-/-- Presentation-level remainder does not force a realised value. -/
-theorem nullity_coherent : sites.Null () ∧ ∃ k, sites.Open () k :=
-  ⟨null, K.star, open_star⟩
+theorem null : emptyCfg.Null := fun _ => rfl
+
+theorem remainder : emptyCfg.Remainder :=
+  ⟨K.star, trivial, rfl⟩
+
+theorem nullity_coherent : emptyCfg.Null ∧ emptyCfg.Remainder :=
+  ⟨null, remainder⟩
 
 end Void
 
-/-- Absolute nullity is compatible with the site laws. -/
 theorem nullity_not_derivable :
-    ∃ (O : Ontology.{0,0}) (S : Sites.{0,0,0} O) (s : S.Carrier),
-      S.Null s :=
-  ⟨Void.ont, Void.sites, (), Void.null⟩
+    ∃ (O : Ontology.{0,0}) (C : Coherence O) (s : Config C),
+      s.Null ∧ s.Remainder :=
+  ⟨Void.ont, Void.coh, Void.emptyCfg, Void.nullity_coherent⟩
 
-/-! ## 7. A world: plural kinds, two places, a reserved remainder -/
+/-! ## 7. A world: independence, interaction, amalgamation -/
 
 namespace World
 
 inductive K where
-  | hue
-  | pulse
-  | choice
-  | gap
+  | sw | lamp | hue | gap
   deriving DecidableEq
 
 inductive Hue where
   | red | green | blue
   deriving DecidableEq
 
-inductive Pulse where
-  | lo | hi
-  deriving DecidableEq
-
-inductive Choice where
-  | left | right
-  deriving DecidableEq
-
-inductive Gap where
-  | west | east
-  deriving DecidableEq
-
 def Val : K → Type
+  | .sw => Bool
+  | .lamp => Bool
   | .hue => Hue
-  | .pulse => Pulse
-  | .choice => Choice
-  | .gap => Gap
+  | .gap => Bool
 
 abbrev ont : Ontology.{0,0} where
   Kind := K
   Value := Val
   Exclusive := fun _ => True
+  decEqKind := inferInstance
 
-structure St where
-  clock : Nat
-  loc : Bool
-  hue : Hue
-  pulse : Pulse
-  choice : Option Choice
+def compat (d e : ont.Det) : Prop :=
+  match d.kind, e.kind, d.value, e.value with
+  | .sw, .sw, a, b => a = b
+  | .lamp, .lamp, a, b => a = b
+  | .hue, .hue, a, b => a = b
+  | .gap, .gap, a, b => a = b
+  | .sw, .lamp, a, b => ¬ (a = false ∧ b = true)
+  | .lamp, .sw, a, b => ¬ (b = false ∧ a = true)
+  | .sw, .hue, _, _ => True
+  | .hue, .sw, _, _ => True
+  | .sw, .gap, _, _ => True
+  | .gap, .sw, _, _ => True
+  | .lamp, .hue, _, _ => True
+  | .hue, .lamp, _, _ => True
+  | .lamp, .gap, _, _ => True
+  | .gap, .lamp, _, _ => True
+  | .hue, .gap, _, _ => True
+  | .gap, .hue, _, _ => True
 
-def articulated (_s : St) (_k : K) : Prop := True
+abbrev coh : Coherence ont where
+  compat := compat
+  refl := by
+    intro d
+    cases d with | mk k v =>
+    cases k <;> exact rfl
+  symm := by
+    intro d e h
+    cases d with | mk k₁ v₁ =>
+    cases e with | mk k₂ v₂ =>
+    cases k₁ <;> cases k₂ <;> first | exact h.symm | exact h
+  exclusive_incompat := by
+    intro k v w _ hne h
+    cases k <;> exact hne h
 
-def realises (s : St) (k : K) (v : Val k) : Prop :=
-  match k, v with
-  | .hue, v => v = s.hue
-  | .pulse, v => v = s.pulse
-  | .choice, v => s.choice = some v
-  | .gap, _ => False
+def vacant : Assignment ont := Assignment.empty
 
-theorem exclusive_unique {s : St} {k : K} {v w : Val k}
-    (hv : realises s k v) (hw : realises s k w) : v = w := by
-  cases k with
-  | hue =>
-      exact hv.trans hw.symm
-  | pulse =>
-      exact hv.trans hw.symm
-  | choice =>
-      exact Option.some.inj (hv.symm.trans hw)
-  | gap =>
-      exact False.elim hv
+def allArt : K → Prop := fun _ => True
 
-theorem remainder (s : St) :
-    ∃ k, articulated s k ∧ ∀ v, ¬ realises s k v :=
-  ⟨K.gap, trivial, fun _ h => h⟩
+def origin : Config coh where
+  articulated := allArt
+  assign := vacant
+  realised_articulated := fun _ _ h => by cases h
+  ok := coh.empty_ok
 
-abbrev sites : Sites.{0,0,0} ont where
-  Carrier := St
-  articulated := articulated
-  realises := realises
-  realises_articulates := fun _ => trivial
-  exclusive_unique := fun _ => exclusive_unique
-  remainder := remainder
+theorem origin_open (k : K) : origin.Open k :=
+  ⟨trivial, rfl⟩
 
-def Active (s t : St) (k : K) (v : Val k) : Prop :=
-  t.clock = s.clock + 1 ∧ t.loc = s.loc ∧
-    match k, v with
-    | .hue, v => t.hue = v ∧ t.pulse = s.pulse ∧ t.choice = s.choice
-    | .pulse, v => t.pulse = v ∧ t.hue = s.hue ∧ t.choice = s.choice
-    | .choice, v => t.choice = some v ∧ t.hue = s.hue ∧ t.pulse = s.pulse
-    | .gap, _ => False
-
-theorem active_continues {s t k v} (h : Active s t k v) :
-    Continues sites s t k v := by
-  cases k with
-  | hue =>
-      obtain ⟨hclock, hloc, hhue, hpulse, hchoice⟩ := h
-      refine ⟨?_, ?_, fun _ _ => trivial⟩
-      · exact hhue.symm
-      · intro k' v' hne
-        cases k' with
-        | hue => exact absurd rfl hne
-        | pulse =>
-            constructor
-            · intro hp; exact hp.trans hpulse.symm
-            · intro hp; exact hp.trans hpulse
-        | choice =>
-            constructor
-            · intro hc; exact hchoice.trans hc
-            · intro hc; exact hchoice.symm.trans hc
-        | gap =>
-            constructor
-            · intro hg; exact False.elim hg
-            · intro hg; exact False.elim hg
-  | pulse =>
-      obtain ⟨hclock, hloc, hpulse, hhue, hchoice⟩ := h
-      refine ⟨?_, ?_, fun _ _ => trivial⟩
-      · exact hpulse.symm
-      · intro k' v' hne
-        cases k' with
-        | hue =>
-            constructor
-            · intro hh; exact hh.trans hhue.symm
-            · intro hh; exact hh.trans hhue
-        | pulse => exact absurd rfl hne
-        | choice =>
-            constructor
-            · intro hc; exact hchoice.trans hc
-            · intro hc; exact hchoice.symm.trans hc
-        | gap =>
-            constructor
-            · intro hg; exact False.elim hg
-            · intro hg; exact False.elim hg
-  | choice =>
-      obtain ⟨hclock, hloc, hch, hhue, hpulse⟩ := h
-      refine ⟨?_, ?_, fun _ _ => trivial⟩
-      · exact hch
-      · intro k' v' hne
-        cases k' with
-        | hue =>
-            constructor
-            · intro hh; exact hh.trans hhue.symm
-            · intro hh; exact hh.trans hhue
-        | pulse =>
-            constructor
-            · intro hp; exact hp.trans hpulse.symm
-            · intro hp; exact hp.trans hpulse
-        | choice => exact absurd rfl hne
-        | gap =>
-            constructor
-            · intro hg; exact False.elim hg
-            · intro hg; exact False.elim hg
-  | gap =>
-      exact False.elim h.2.2
-
-theorem active_advances {s t k v} (h : Active s t k v) :
-    s.clock < t.clock := by
-  have hc := h.1
-  rw [hc]
-  exact Nat.lt_succ_self _
-
-abbrev dyn : Dynamics sites where
-  Active := Active
-  continues := active_continues
-  rank := fun s => s.clock
-  advances := active_advances
-
-def stepPulse (s : St) (p : Pulse) : St :=
-  { clock := s.clock + 1, loc := s.loc, hue := s.hue,
-    pulse := p, choice := s.choice }
-
-def stepHue (s : St) (h : Hue) : St :=
-  { clock := s.clock + 1, loc := s.loc, hue := h,
-    pulse := s.pulse, choice := s.choice }
-
-def stepChoice (s : St) (c : Choice) : St :=
-  { clock := s.clock + 1, loc := s.loc, hue := s.hue,
-    pulse := s.pulse, choice := some c }
-
-theorem active_pulse (s : St) (p : Pulse) :
-    Active s (stepPulse s p) K.pulse p :=
-  ⟨rfl, rfl, rfl, rfl, rfl⟩
-
-theorem active_hue (s : St) (h : Hue) :
-    Active s (stepHue s h) K.hue h :=
-  ⟨rfl, rfl, rfl, rfl, rfl⟩
-
-theorem active_choice (s : St) (c : Choice) :
-    Active s (stepChoice s c) K.choice c :=
-  ⟨rfl, rfl, rfl, rfl, rfl⟩
-
-theorem productive : dyn.Productive := by
-  intro s
-  exact ⟨stepPulse s Pulse.hi, K.pulse, Pulse.hi, active_pulse s Pulse.hi⟩
-
-def origin : St :=
-  { clock := 0, loc := false, hue := Hue.red, pulse := Pulse.lo,
-    choice := none }
-
-def elsewhere : St :=
-  { clock := 0, loc := true, hue := Hue.blue, pulse := Pulse.hi,
-    choice := none }
-
-theorem origin_open_choice : sites.Open origin K.choice := by
-  refine ⟨trivial, ?_⟩
-  intro v h
-  cases v <;> cases h
-
-theorem origin_open_gap : sites.Open origin K.gap :=
-  ⟨trivial, fun _ h => h⟩
-
-theorem trichotomous_hue :
-    ∃ a b c : Hue, a ≠ b ∧ b ≠ c ∧ a ≠ c := by
-  refine ⟨Hue.red, Hue.green, Hue.blue, ?_, ?_, ?_⟩
+theorem independent_hue_sw : coh.Independent K.hue K.sw := by
+  constructor
   · intro h; cases h
-  · intro h; cases h
-  · intro h; cases h
+  · intro _ _; exact trivial
 
-theorem dichotomous_choice : ont.Dichotomous K.choice := by
-  refine ⟨Choice.left, Choice.right, ?_, ?_⟩
+theorem independent_hue_lamp : coh.Independent K.hue K.lamp := by
+  constructor
   · intro h; cases h
-  · intro c; cases c with
-    | left => exact Or.inl rfl
-    | right => exact Or.inr rfl
+  · intro _ _; exact trivial
 
-theorem richAt_origin_choice : dyn.RichAt origin K.choice := by
-  refine ⟨origin_open_choice, ?_⟩
-  intro v
-  cases v with
-  | left => exact ⟨stepChoice origin Choice.left, active_choice origin Choice.left⟩
-  | right => exact ⟨stepChoice origin Choice.right, active_choice origin Choice.right⟩
+theorem not_independent_sw_lamp : ¬ coh.Independent K.sw K.lamp := by
+  intro ⟨_, hall⟩
+  have : compat ⟨K.sw, false⟩ ⟨K.lamp, true⟩ := hall false true
+  exact this ⟨rfl, rfl⟩
 
-def sel : Selector sites where
-  choose := fun _s k =>
+theorem settable_sw_off : coh.Settable vacant K.sw false :=
+  coh.settable_empty K.sw false
+
+theorem settable_lamp_on : coh.Settable vacant K.lamp true :=
+  coh.settable_empty K.lamp true
+
+theorem settable_hue (h : Hue) : coh.Settable vacant K.hue h :=
+  coh.settable_empty K.hue h
+
+theorem hue_sw_amalgamate :
+    coh.PairwiseOk
+      (Assignment.set (Assignment.set vacant K.hue Hue.red) K.sw true) :=
+  coh.independent_amalgamate independent_hue_sw rfl rfl
+    (settable_hue Hue.red) (coh.settable_empty K.sw true)
+
+theorem hue_sw_diamond :
+    Assignment.set (Assignment.set vacant K.hue Hue.red) K.sw true =
+      Assignment.set (Assignment.set vacant K.sw true) K.hue Hue.red ∧
+    coh.PairwiseOk
+      (Assignment.set (Assignment.set vacant K.hue Hue.red) K.sw true) :=
+  coh.independent_commute independent_hue_sw rfl rfl
+    (settable_hue Hue.red) (coh.settable_empty K.sw true)
+
+theorem sw_lamp_refuse :
+    ¬ coh.PairwiseOk
+      (Assignment.set (Assignment.set vacant K.sw false) K.lamp true) := by
+  intro h
+  have hs :
+      Assignment.set (Assignment.set vacant K.sw false) K.lamp true K.sw =
+        some false := by
+    rw [Assignment.set_ne (Assignment.set vacant K.sw false) K.lamp true K.sw
+      (by decide)]
+    exact Assignment.set_self vacant K.sw false
+  have hl :
+      Assignment.set (Assignment.set vacant K.sw false) K.lamp true K.lamp =
+        some true :=
+    Assignment.set_self _ _ _
+  have : compat ⟨K.sw, false⟩ ⟨K.lamp, true⟩ :=
+    h K.sw K.lamp false true hs hl
+  exact this ⟨rfl, rfl⟩
+
+/-- Interaction, not independence: each settlement is admissible, the
+joint is not.  Space here is a constraint, not a bag of locations. -/
+theorem interaction_blocks_amalgamation :
+    coh.Settable vacant K.sw false ∧
+      coh.Settable vacant K.lamp true ∧
+      ¬ coh.PairwiseOk
+        (Assignment.set (Assignment.set vacant K.sw false) K.lamp true) :=
+  ⟨settable_sw_off, settable_lamp_on, sw_lamp_refuse⟩
+
+def seen : Region ont
+  | .hue => true
+  | .lamp => true
+  | .sw => false
+  | .gap => false
+
+theorem restrict_origin_ok :
+    coh.PairwiseOk (restrict origin.assign seen) :=
+  restrict_sub origin.ok seen
+
+theorem plenitude_hue : PlenitudeAt origin K.hue :=
+  plenitudeAt_of_open origin K.hue (origin_open K.hue)
+
+def sel : Selector ont where
+  choose := fun k =>
     match k with
+    | .sw => true
+    | .lamp => true
     | .hue => Hue.red
-    | .pulse => Pulse.hi
-    | .choice => Choice.left
-    | .gap => Gap.west
+    | .gap => false
 
-theorem possible_exceeds_selection :
-    ¬ dyn.Respects sel :=
-  dyn.richAt_exceeds_selector richAt_origin_choice
-    (show Choice.left ≠ Choice.right from fun h => nomatch h) sel
+theorem exceeds :
+    ¬ RespectsSettles (C := coh) sel :=
+  plenitude_exceeds_selector plenitude_hue
+    (show Hue.red ≠ Hue.green from fun h => nomatch h)
+    (settable_hue Hue.red) (settable_hue Hue.green) sel
 
-/-- A completed history is supplied by the model, not derived from
-productivity in the abstract. -/
-def hist : Dynamics.History dyn where
-  nth := fun n =>
-    { clock := n, loc := false, hue := Hue.red, pulse := Pulse.hi,
-      choice := none }
-  step := fun n =>
-    ⟨K.pulse, Pulse.hi, by
-      dsimp [Active]
-      refine ⟨rfl, rfl, rfl, rfl, rfl⟩⟩
+def seed : Config coh where
+  articulated := fun k => k = K.gap
+  assign := vacant
+  realised_articulated := fun _ _ h => by cases h
+  ok := coh.empty_ok
 
-theorem hist_unbounded (n : Nat) :
-    Chain dyn n (hist.nth 0) (hist.nth n) :=
-  dyn.history_chain hist n
+theorem seed_grows_origin : Config.Grows seed origin := by
+  refine ⟨fun _ _ => trivial, ⟨K.hue, trivial, ?_⟩, rfl⟩
+  intro h
+  cases h
 
-abbrev coexist : Coexistence dyn where
-  together := fun s t => s.clock = t.clock
-  refl := fun _ => rfl
-  symm := fun h => h.symm
-  not_time := by
-    intro s t htog hear
-    obtain ⟨n, hn, hc⟩ := hear
-    have hlt : s.clock < t.clock := dyn.chain_pos_rank hc hn
-    exact Nat.ne_of_lt hlt htog
-
-theorem origin_elsewhere_together :
-    coexist.together origin elsewhere :=
-  rfl
-
-theorem origin_elsewhere_not_earlier :
-    ¬ dyn.Earlier origin elsewhere :=
-  coexist.not_time origin_elsewhere_together
-
-theorem two_step_earlier_not_direct :
-    dyn.Earlier origin (stepPulse (stepPulse origin Pulse.hi) Pulse.lo) ∧
-      ¬ dyn.Direct origin (stepPulse (stepPulse origin Pulse.hi) Pulse.lo) := by
-  refine ⟨?_, ?_⟩
-  · refine ⟨2, Nat.succ_ne_zero 1, ?_⟩
-    have a1 : dyn.Active origin (stepPulse origin Pulse.hi) K.pulse Pulse.hi :=
-      active_pulse origin Pulse.hi
-    have a2 : dyn.Active (stepPulse origin Pulse.hi)
-        (stepPulse (stepPulse origin Pulse.hi) Pulse.lo) K.pulse Pulse.lo :=
-      active_pulse (stepPulse origin Pulse.hi) Pulse.lo
-    have c0 : Chain dyn 0 origin origin := Chain.refl (D := dyn) origin
-    have c1 : Chain dyn 1 origin (stepPulse origin Pulse.hi) :=
-      Chain.step c0 a1
-    exact Chain.step c1 a2
-  · intro ⟨k, v, ha⟩
-    have hclock : (stepPulse (stepPulse origin Pulse.hi) Pulse.lo).clock =
-        origin.clock + 1 := ha.1
-    simp [stepPulse, origin] at hclock
-
-def appear : Appearance sites where
-  Observer := Bool
-  appears := fun o s k v =>
-    o = s.loc ∧
-      match k, v with
-      | .hue, v => v = s.hue
-      | .pulse, v => v = Pulse.hi
-      | .choice, _ => False
-      | .gap, _ => False
-
-theorem veridical_hue :
-    appear.Veridical origin.loc origin K.hue Hue.red :=
-  ⟨⟨rfl, rfl⟩, rfl⟩
-
-theorem illusory_pulse :
-    appear.Illusion origin.loc origin K.pulse Pulse.hi :=
-  ⟨⟨rfl, rfl⟩, by intro h; cases h⟩
-
-def located : Appearance.Located appear where
-  locOf := fun o s => o = s.loc
-  only_located := fun h => h.1
-
-/-- Gap is open at every site and is never a target.  Remainder need not
-be the kind that plenitude works. -/
-theorem gap_reserved (s : St) :
-    sites.Open s K.gap ∧ ∀ t v, ¬ Active s t K.gap v :=
-  ⟨⟨trivial, fun _ h => h⟩, fun _ _ h => h.2.2⟩
-
-theorem hue_persists_across_pulse (s : St) (p : Pulse) :
-    sites.realises (stepPulse s p) K.hue s.hue :=
-  dyn.persists (k := K.pulse) (k' := K.hue) (v := p) (v' := s.hue)
-    (active_pulse s p) (fun h => nomatch h) rfl
+theorem earlier_seed_origin : Config.Earlier seed origin :=
+  Config.Earlier.step seed_grows_origin
 
 end World
 
 /-! ## Axiom regression -/
 
 /--
-info: 'OpenSite.World.possible_exceeds_selection' does not depend on any axioms
+info: 'OpenSite.World.hue_sw_diamond' depends on axioms: [Quot.sound]
 -/
 #guard_msgs in
-#print axioms World.possible_exceeds_selection
+#print axioms World.hue_sw_diamond
 
 /--
-info: 'OpenSite.World.hist' does not depend on any axioms
+info: 'OpenSite.World.interaction_blocks_amalgamation' does not depend on any axioms
 -/
 #guard_msgs in
-#print axioms World.hist
+#print axioms World.interaction_blocks_amalgamation
 
 /--
-info: 'OpenSite.World.two_step_earlier_not_direct' depends on axioms: [propext]
+info: 'OpenSite.World.exceeds' does not depend on any axioms
 -/
 #guard_msgs in
-#print axioms World.two_step_earlier_not_direct
+#print axioms World.exceeds
 
 /--
-info: 'OpenSite.World.illusory_pulse' does not depend on any axioms
+info: 'OpenSite.productivity_is_not_coherence_level' does not depend on any axioms
 -/
 #guard_msgs in
-#print axioms World.illusory_pulse
-
-/-! ## What this does not close
-
-Continuous magnitude, metric duration, geometry, embodiment as lived body,
-and phenomenal character remain outside.  They are outside because they
-need further primitives (an ordered field, a metric, a body-kind, a
-phenomenological givenness relation), not because a binary field was too
-narrow.  The point of the schema is that those primitives can be added
-*as themselves*, and then one can see what they prove.
-
-What is closed, relative to the old open list:
-
-* Plural determination: `Hue` has three values; exclusivity still holds.
-* Productivity ≠ completed infinite succession: `productive_unbounded`
-  versus `History`.
-* A formal future is just `Earlier` read in the other direction; it is
-  not marked inside the source.
-* Space as coexistence, disjoint from time.
-* Causation as `Direct`, strictly stronger than `Earlier`.
-* Observation that can fail.
--/
+#print axioms productivity_is_not_coherence_level
 
 end OpenSite

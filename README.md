@@ -113,7 +113,7 @@ recurrence whose endpoint is still later in the archive.
 | Path | Contents |
 | --- | --- |
 | [LatentActual.lean](LatentActual.lean) | The complete revision 11 formalization, countermodel, concrete model, and axiom regressions |
-| [OpenSite.lean](OpenSite.lean) | A successor schema: kinds as types, remainder, acts, ranked time, coexistence, appearance |
+| [OpenSite.lean](OpenSite.lean) | Successor schema from compossibility: coherence, independence, locality as a theorem |
 | [paper/latent-actual.tex](paper/latent-actual.tex) | The self-contained LaTeX paper developing the argument and its metaphysical interpretation |
 | [paper/open-site.tex](paper/open-site.tex) | Design note for the Open Site schema |
 | [output/pdf/latent-actual.pdf](output/pdf/latent-actual.pdf) | A compiled copy of the paper |
@@ -186,21 +186,20 @@ Its limits are equally important:
 
 ## A successor schema: Open Sites
 
-[OpenSite.lean](OpenSite.lean) is a tabula rasa proposal, not a patch of the
-binary development. It keeps the old project's discipline (explicit premises,
-countermodels, no <code>sorry</code>) and drops the demand that one
-\(\mathbb{Z}/2\)-torsor do every metaphysical job.
+[OpenSite.lean](OpenSite.lean) starts from **compossibility**, not from
+acts. A step is already ordinal, so an act-first primitive gets time
+almost free and has nowhere for extension to come from.
 
-Kinds are types of values. Remainder is a site law. Time is the ranked
-ancestral of acts. Space is coexistence, disjoint from time. Causation is
-one-step acting, strictly stronger than ancestry. Appearance is not
-realisation, so illusion is possible. Binary opposition survives as a
-property of some kinds. Productivity is proved distinct from a completed
-\(\omega\)-history.
+Kinds are types of values. Pairwise compatibility says which
+determinations can be settled together. Independence is the spatial
+primitive; locality (amalgamation of independent settlements) is a
+theorem, not a clause on acts. Articulation accumulates and values vary,
+as two structures. Time is the ancestral of articulative growth.
+Plenitude is the one existential. Observation is restriction to a region.
+Dimension and metric are out of scope.
 
 The binary file is not retracted. It remains the right special case for
-promote-and-turn. Open Sites is the schema to extend when the next primitive
-is actually a new primitive.
+promote-and-turn on dichotomous kinds.
 
 ## License
 
