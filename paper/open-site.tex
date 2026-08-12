@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{linkblue}{HTML}{1F4E79}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=linkblue,
+  urlcolor=linkblue,
+  pdftitle={Open Sites: A Typed Process Schema},
+  pdfauthor={Latent-Actual Project},
+  pdfsubject={A Lean-native successor schema},
+}
+
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=0.35em, topsep=0.5em}
+
+\newtheorem{formalresult}{Formal result}[section]
+\theoremstyle{definition}
+\newtheorem{definition}[formalresult]{Definition}
+\theoremstyle{remark}
+\newtheorem*{qualification}{Qualification}
+
+\newcommand{\lean}[1]{\nolinkurl{#1}}
+
+\title{\textbf{Open Sites}\\[0.45em]
+  \large A typed process schema that Lean can actually hold}
+\author{Latent--Actual Project}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The binary latent--actual development proved a coherent package, then asked
+that package to be time, space, causation, observation, and continuous
+determination as well. Those are different jobs. This note proposes a
+successor schema whose primitives match the distinctions type theory can
+check: kinds as types of values, sites with remainder, acts that settle a
+value, time as the ranked ancestral of acts, coexistence as joint actuality,
+causation as one-step acting, and appearance that is not realisation. A Lean
+4 file, \texttt{OpenSite.lean}, checks the core theorems, a void
+countermodel, and a world with three-valued hue, two places, reserved
+remainder, illusion, and a supplied $\omega$-history.
+\end{abstract}
+
+\section{The diagnosis}
+
+The binary field was a good engine for one question: can local determinacy
+coexist with permanent latency, qualitative reversal, and modal excess over
+selection? It answered that question. It is a poor engine for every
+neighbouring question, because almost every headline theorem used unique
+contrariety --- \lean{flip}, \lean{pole\_dichotomy}, promote-then-turn,
+$e=\overline{d}$.
+
+Generalising the field while keeping those theorems is not a lemma. Encoding
+time in traces, space in archive incomparability, and observation in
+co-realisation produced names that outran their content. The honest move is
+not a wider binary schema. It is a stratified one.
+
+\paragraph{Do not encode. Stratify.}
+Give each metaphysical job its own primitive. Prove only what that primitive
+yields. When a further phenomenon is wanted, add a further primitive, not a
+pun.
+
+\section{The schema}
+
+\begin{definition}[Ontology]
+An ontology supplies a type of kinds, a value type for each kind, and a
+predicate \emph{exclusive} on kinds. A determinate is a value of a kind.
+Exclusivity is optional: exclusive kinds realise at most one value at a
+site; non-exclusive kinds may realise several.
+\end{definition}
+
+Binary opposition is a \emph{property of a kind}
+(\lean{Ontology.Dichotomous}), not the shape of the cosmos. A hue with three
+values is first-class. A continuous kind is a kind whose value type is
+whatever ordered magnitude one later supplies. The schema does not construct
+the reals; it also does not forbid them.
+
+\begin{definition}[Site]
+A site articulates kinds and realises values. Realisation implies
+articulation. Exclusive kinds realise at most one value. Remainder is a site
+law: every site has an articulated kind with no realised value.
+\end{definition}
+
+Remainder is not a theorem of the kind/value distinction. The void model
+satisfies remainder while realising nothing. Actuality is not derived from
+presentation.
+
+\begin{definition}[Act]
+An act from $s$ to $t$ settles one value at one kind, preserves realisation
+at every other kind, and does not delete prior articulation. Dynamics add a
+rank that every act advances.
+\end{definition}
+
+The rank is an honest historicity premise --- a clock, not a memory and not
+a phenomenology. Without it, ancestry need not be acyclic. With it, the
+ancestral of acts is a strict order.
+
+\begin{formalresult}[Time as ancestry]
+\lean{Earlier} is irreflexive, transitive, and asymmetric.
+Off-target realised content persists through one act.
+\end{formalresult}
+
+\begin{formalresult}[Productivity is not completed succession]
+Seriality (\lean{Productive}) yields arbitrarily long finite chains, as a
+propositional existence. A completed $\omega$-history is extra data: a
+function $\mathbb{N}\to\mathrm{Carrier}$ with a step at every index. The
+abstract implication from seriality to such a function is countable
+dependent choice, which the file does not assume. The world model
+\emph{supplies} a history.
+\end{formalresult}
+
+This is the one old open problem that was already a missing theorem rather
+than a missing phenomenon. It is now proved, and the two notions are not
+identified.
+
+\section{Selection, space, cause, appearance}
+
+If an open kind has two values and both are possible targets, no selector is
+respected (\lean{richAt\_exceeds\_selector}). Plenitude is local to a
+workable kind. Remainder may be a reserved, unsettleable kind. The world
+model uses a gap of that form, so remainder and modal excess do not fight.
+
+\begin{definition}[Coexistence]
+A coexistence relation is reflexive and symmetric, and incompatible with
+\lean{Earlier}.
+\end{definition}
+
+Joint actuality is the spatial primitive. It is not geometry. It is also not
+archive incomparability: two possible successors of one site are not thereby
+co-present. The world model has two locations at clock zero that are
+together and not temporally ordered.
+
+\begin{definition}[Direct cause]
+$s$ directly causes $t$ when some act runs from $s$ to $t$.
+\end{definition}
+
+Every direct cause is earlier. The converse fails on a two-step run: the
+endpoint is later, not a one-step successor. Causation is not identified
+with temporal precedence, and the distinction uses no extra causal
+primitive beyond the act itself. Counterfactuals and prehension remain
+outside.
+
+\begin{definition}[Appearance]
+An observer-relation of appearing is not required to coincide with
+realisation. Veridical appearance is the conjunction; illusion is appearance
+without realisation.
+\end{definition}
+
+The old observer layer forbade illusion by co-realisation. Here illusion is
+inhabited in the world model (a low pulse that appears high). Location of
+an observer is a constraint on appearance, not a lived body.
+
+\section{What is closed, and what is not}
+
+Relative to the old remaining-work paragraph:
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.42\linewidth}p{0.52\linewidth}@{}}
+\toprule
+Old omission & Status in Open Sites \\
+\midrule
+Plural determination & Closed as kinds with $n$ values; hue is trichotomous. \\
+Productivity vs $\omega$-history & Closed as two theorems, not identified. \\
+Formal future & The converse of \lean{Earlier}; not marked at the source. \\
+Space & Coexistence, disjoint from time; not geometry. \\
+Causation & Direct act vs ancestry; not a causal calculus. \\
+Observation & Appearance, with illusion; not consciousness. \\
+Continuous / metric time & Still outside (needs an ordered magnitude). \\
+Phenomenal duration, embodiment & Still outside (would be further primitives). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The last items are outside because they need further primitives, not because
+a binary field was too narrow. That is the methodological gain: new premises
+can be added \emph{as themselves}, and their consequences proved rather than
+suggested by renaming.
+
+The binary development is not retracted. It remains a correct special case:
+when a kind is exclusive and dichotomous, settlement orients one value and
+excludes the other (\lean{dichotomous\_orients}). Cadence and swirl can be
+reintroduced later as optional structure on a strand, not as the engine of
+every kind.
+
+\section{Check}
+
+The Lean source imports only \texttt{Init}. Under Lean~4.24.0:
+
+\begin{verbatim}
+elan run leanprover/lean4:v4.24.0 lean OpenSite.lean
+\end{verbatim}
+
+A successful check exits without output. The file contains no
+\texttt{axiom}, \texttt{sorry}, \texttt{admit}, or \texttt{native\_decide}.
+
+\end{document}

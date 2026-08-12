@@ -113,7 +113,9 @@ recurrence whose endpoint is still later in the archive.
 | Path | Contents |
 | --- | --- |
 | [LatentActual.lean](LatentActual.lean) | The complete revision 11 formalization, countermodel, concrete model, and axiom regressions |
+| [OpenSite.lean](OpenSite.lean) | A successor schema: kinds as types, remainder, acts, ranked time, coexistence, appearance |
 | [paper/latent-actual.tex](paper/latent-actual.tex) | The self-contained LaTeX paper developing the argument and its metaphysical interpretation |
+| [paper/open-site.tex](paper/open-site.tex) | Design note for the Open Site schema |
 | [output/pdf/latent-actual.pdf](output/pdf/latent-actual.pdf) | A compiled copy of the paper |
 
 There is no executable application and no Mathlib dependency. The Lean source
@@ -127,6 +129,7 @@ The development's declared baseline is **Lean 4.24.0**. Install Lean through
 ~~~powershell
 elan toolchain install leanprover/lean4:v4.24.0
 elan run leanprover/lean4:v4.24.0 lean LatentActual.lean
+elan run leanprover/lean4:v4.24.0 lean OpenSite.lean
 ~~~
 
 A successful check exits without output. The repository deliberately has no
@@ -146,6 +149,7 @@ With a standard LaTeX distribution and <code>latexmk</code>:
 
 ~~~powershell
 latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=output/pdf paper/latent-actual.tex
+latexmk -pdf -interaction=nonstopmode -halt-on-error -outdir=output/pdf paper/open-site.tex
 ~~~
 
 The paper uses only common TeX Live packages and carries its bibliography in
@@ -179,6 +183,24 @@ Its limits are equally important:
   and open-content contrast, not a present predicate, a future event, or
   phenomenal duration. Space, embodiment, causal interpretation, and a
   phenomenology of lived time remain outside the account.
+
+## A successor schema: Open Sites
+
+[OpenSite.lean](OpenSite.lean) is a tabula rasa proposal, not a patch of the
+binary development. It keeps the old project's discipline (explicit premises,
+countermodels, no <code>sorry</code>) and drops the demand that one
+\(\mathbb{Z}/2\)-torsor do every metaphysical job.
+
+Kinds are types of values. Remainder is a site law. Time is the ranked
+ancestral of acts. Space is coexistence, disjoint from time. Causation is
+one-step acting, strictly stronger than ancestry. Appearance is not
+realisation, so illusion is possible. Binary opposition survives as a
+property of some kinds. Productivity is proved distinct from a completed
+\(\omega\)-history.
+
+The binary file is not retracted. It remains the right special case for
+promote-and-turn. Open Sites is the schema to extend when the next primitive
+is actually a new primitive.
 
 ## License
 
