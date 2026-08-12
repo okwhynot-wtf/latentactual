@@ -1,13 +1,13 @@
 import Init
 
 /-!
-# Latent–Actual, revision 10
+# Latent–Actual, revision 11
 
-Revision 10 reduces the premise burden exposed by revision 9.  Resolution is
-derived from realisation, redundant transition fields become theorems,
-generative thickness is stated directly on active transitions, and the system
-record contains only the data needed to define actuality.  Stronger existence
-and seed-effectiveness assumptions are supplied only to the results using them.
+Revision 11 retains revision 10's genuine reductions while restoring plenitude
+as the system-level explanation of productivity.  Focus replaces a uniform
+gradient in the system core; rooted histories propagate seed effectiveness;
+observation and archive carriage are internal again; continuations state an
+explicit realised-content locality law; and cadence is proved across runs.
 
 **Opposition-primitive, unlabelled.**  Fibres are `Z/2`-torsors; a gradient is
 a choice of section.
@@ -353,8 +353,17 @@ structure Continues (p q : P.Presentation) (d : F.Determination) : Prop where
       P.articulates p ⟨o, pol⟩ →
         (P.realises q ⟨o, pol⟩ ↔ P.realises p ⟨o, pol⟩)
   articulation : ∀ e, P.articulates p e → P.articulates q e
-  /-- Archive movement only needs the old trace to be articulated. -/
-  carries : P.articulates q (P.trace p)
+  /-- The successor makes the predecessor's trace effective, not merely drawn. -/
+  carries : P.realises q (P.trace p)
+  /-- Apart from the target opposition, a genuinely new articulation can only
+  be the predecessor's trace opposition. -/
+  locality : ∀ e, P.articulates q e → ¬ P.articulates p e →
+    F.Opposed d e ∨ F.Opposed (P.trace p) e
+  /-- Away from the settled opposition, the predecessor's trace is the only
+  newly realised determination.  New articulation without realisation remains
+  possible. -/
+  realised_locality : ∀ e, ¬ F.Opposed d e → P.realises q e →
+    P.realises p e ∨ e = P.trace p
   seeded : P.seed q = d
   /-- After promoting (settling something open), next turns; after turning,
   next promotes. -/
@@ -370,7 +379,29 @@ theorem excludes {p q : P.Presentation} {d : F.Determination}
 
 theorem articulates_trace {p q : P.Presentation} {d : F.Determination}
     (h : Continues P p q d) : P.articulates q (P.trace p) :=
-  h.carries
+  P.realises_articulates h.carries
+
+/-- If the target was already drawn, the predecessor trace is the only newly
+drawn opposition. -/
+theorem newly_articulated_is_trace {p q : P.Presentation}
+    {d : F.Determination} (h : Continues P p q d)
+    (hd : P.articulates p d) {e : F.Determination}
+    (hq : P.articulates q e) (hp : ¬ P.articulates p e) :
+    F.Opposed (P.trace p) e := by
+  cases h.locality e hq hp with
+  | inl hde =>
+      cases F.eq_or_neg d e hde with
+      | inl he => exact False.elim (hp (by rw [he]; exact hd))
+      | inr he => exact False.elim (hp (by rw [he]; exact P.articulates_neg hd))
+  | inr htr => exact htr
+
+theorem off_target_novel_is_trace {p q : P.Presentation}
+    {d e : F.Determination} (h : Continues P p q d)
+    (hoff : ¬ F.Opposed d e) (hnew : ¬ P.realises p e)
+    (hq : P.realises q e) : e = P.trace p := by
+  cases h.realised_locality e hoff hq with
+  | inl hp => exact absurd hp hnew
+  | inr he => exact he
 
 theorem off_determination {p q : P.Presentation} {d : F.Determination}
     (h : Continues P p q d) (e : F.Determination) (hne : ¬ F.Opposed d e)
@@ -462,6 +493,32 @@ inductive Chain {F : Field.{u}} {P : PresentationLayer.{u,v} F}
   | refl (p : P.Presentation) : Chain G 0 p p
   | step {n : Nat} {p q r : P.Presentation} {d : F.Determination} :
       Chain G n p q → G.Active q r d → Chain G (n + 1) p r
+
+namespace Cadence
+
+/-- The cadence bit after `n` actual acts, assuming every act flips it. -/
+def after : Nat → Bool → Bool
+  | 0, b => b
+  | n + 1, b => !after n b
+
+@[simp] theorem after_two (b : Bool) : after 2 b = b := by
+  simp [after]
+
+theorem after_add_two (n : Nat) (b : Bool) : after (n + 2) b = after n b := by
+  simp [after]
+
+@[simp] theorem after_even (k : Nat) (b : Bool) : after (2 * k) b = b := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+      rw [Nat.mul_succ]
+      simp only [after_add_two, ih]
+
+@[simp] theorem after_odd (k : Nat) (b : Bool) :
+    after (2 * k + 1) b = !b := by
+  simp [after]
+
+end Cadence
 
 namespace GenerativeLayer
 
@@ -609,11 +666,26 @@ end Archive
 
 structure ObserverLayer {F : Field.{u}} (P : PresentationLayer.{u,v} F) where
   AppearsTo : P.Presentation → F.Determination → F.Determination → Prop
+  observer_is_realised : ∀ {p o d}, AppearsTo p o d → P.realises p o
   observed_is_realised : ∀ {p o d}, AppearsTo p o d → P.realises p d
 
 namespace ObserverLayer
 
 variable {F : Field.{u}} {P : PresentationLayer.{u,v} F} (O : ObserverLayer P)
+
+/-- To be an observer *at* a presentation is to have something appear there;
+this replaces an unconstrained global observer tag. -/
+def IsObserverAt (p : P.Presentation) (o : F.Determination) : Prop :=
+  ∃ d, O.AppearsTo p o d
+
+theorem observerAt_is_realised {p o} (h : O.IsObserverAt p o) :
+    P.realises p o := by
+  obtain ⟨d, hd⟩ := h
+  exact O.observer_is_realised hd
+
+theorem appears_internal {p o d} (h : O.AppearsTo p o d) :
+    P.realises p o ∧ P.realises p d :=
+  ⟨O.observer_is_realised h, O.observed_is_realised h⟩
 
 theorem not_appears_both {p o d}
     (h₁ : O.AppearsTo p o d) (h₂ : O.AppearsTo p o (F.neg d)) : False :=
@@ -622,16 +694,41 @@ theorem not_appears_both {p o d}
 theorem not_appears_open {p o d} (h : O.AppearsTo p o d) : ¬ P.OpenIn p d :=
   fun ho => ho.2 (P.realises_resolves (O.observed_is_realised h))
 
-def Registers (q p : P.Presentation) : Prop := P.articulates q (P.trace p)
+theorem not_observer_open {p o d} (h : O.AppearsTo p o d) : ¬ P.OpenIn p o :=
+  fun ho => ho.2 (P.realises_resolves (O.observer_is_realised h))
+
+/-- An immediate successor carries the predecessor's exact trace pole. -/
+def EffectivelyRegisters (q p : P.Presentation) : Prop :=
+  P.realises q (P.trace p)
+
+/-- A later presentation continues to register the trace opposition, although
+subsequent acts may reverse its pole. -/
+def Registers (q p : P.Presentation) : Prop := P.Resolves q (P.trace p)
 
 variable {G : GenerativeLayer P}
 
-theorem registers_of_chain {n : Nat} {p q : P.Presentation}
-    (h : Chain G (n + 1) p q) : Registers q p := (Archive.chain_precedes P h).2
+theorem effectively_registers_of_active {p q : P.Presentation}
+    {d : F.Determination} (h : G.Active p q d) : EffectivelyRegisters q p :=
+  (G.active_continues h).carries
+
+theorem registers_of_chain : ∀ {n : Nat} {p q : P.Presentation},
+    Chain G (n + 1) p q → Registers q p := by
+  intro n
+  induction n with
+  | zero =>
+      intro p q h
+      cases h with
+      | step c a =>
+          cases c with
+          | refl _ => exact P.realises_resolves (G.active_continues a).carries
+  | succ k ih =>
+      intro p q h
+      cases h with
+      | step c a => exact (G.active_continues a).resolution _ (ih c)
 
 theorem registers_asymm {p q : P.Presentation}
     (h : Archive.Precedes P p q) : ¬ Registers p q :=
-  fun hr => P.trace_fresh q (h.1 _ hr)
+  fun hr => P.trace_fresh q (h.1 _ (P.resolves_articulates hr))
 
 end ObserverLayer
 
@@ -762,17 +859,10 @@ def full : GenerativeLayer P where
 
 /-- Continuations for open settlements, and always a turn of the seed.  The
 seed-turn clause is what focus-as-seed needs; it does not require every
-realised pole (e.g. a pure name) to be flippable. -/
+  realised pole (e.g. a pure name) to be flippable. -/
 structure Rich : Prop where
   open_cont : ∀ p d, P.OpenIn p d → ∃ q, P.Continues p q d
   seed_turn : ∀ p, ∃ q, P.Continues p q (F.neg (P.seed p))
-
-/-- Exact generative thickness used by the theorem suite.  It asks only for
-the relevant active transitions, rather than declaring every continuation
-active. -/
-structure ActiveRich (G : GenerativeLayer P) : Prop where
-  open_active : ∀ p d, P.OpenIn p d → ∃ q, G.Active p q d
-  seed_turn_active : ∀ p, ∃ q, G.Active p q (F.neg (P.seed p))
 
 variable {P}
 
@@ -796,21 +886,6 @@ theorem maximal_iff_extends_full {G : GenerativeLayer P} :
   · intro h G' _ p q d hg
     exact h p q d (G'.active_continues hg)
 
-theorem activeRich_of_plenitude {G : GenerativeLayer P}
-    (hmax : Maximal G) (hrich : Rich P) : ActiveRich P G where
-  open_active := fun p d hd => by
-    obtain ⟨q, hq⟩ := hrich.open_cont p d hd
-    exact ⟨q, (maximal_iff_extends_full.mp hmax) p q d hq⟩
-  seed_turn_active := fun p => by
-    obtain ⟨q, hq⟩ := hrich.seed_turn p
-    exact ⟨q, (maximal_iff_extends_full.mp hmax) p q _ hq⟩
-
-theorem productive_of_activeRich {G : GenerativeLayer P}
-    (hrich : ActiveRich P G) : G.Productive := by
-  intro p
-  obtain ⟨q, hq⟩ := hrich.seed_turn_active p
-  exact ⟨q, ⟨F.neg (P.seed p), hq⟩⟩
-
 /-- Productivity from plenitude via the seed turn. -/
 theorem productive_of_plenitude {G : GenerativeLayer P}
     (hmax : Maximal G) (hrich : Rich P) :
@@ -821,95 +896,65 @@ theorem productive_of_plenitude {G : GenerativeLayer P}
       exact ⟨q, ⟨F.neg (P.seed p),
         hmax (full P) (extends_full G) p q (F.neg (P.seed p)) hq⟩⟩
 
-theorem activeRich_excludes_selection {G : GenerativeLayer P}
-    (S : Selector P) (hrich : ActiveRich P G) (p : P.Presentation) :
-    ¬ S.Respected G := by
-  intro hresp
-  obtain ⟨pol, ha, hr⟩ := P.offer_open p
-  let d : F.Determination := ⟨P.offer p, pol⟩
-  have hd : P.OpenIn p d := ⟨ha, hr⟩
-  obtain ⟨q, a₁⟩ := hrich.open_active p d hd
-  obtain ⟨q', a₂⟩ := hrich.open_active p (F.neg d) (P.open_neg hd)
-  have e₁ : S.selectDet p d = d := hresp a₁
-  have e₂ : S.selectDet p (F.neg d) = F.neg d := hresp a₂
-  have hc : S.selectDet p (F.neg d) = S.selectDet p d :=
-    S.selectDet_coherent p d
-  rw [e₁, e₂] at hc
-  exact F.neg_free d hc
-
 theorem plenitude_excludes_selection {G : GenerativeLayer P}
     (S : Selector P)
-    (hmax : Maximal G) (hrich : Rich P) (hopen : P.OpenNonExhaustive)
+    (hmax : Maximal G) (hrich : Rich P)
     (p₀ : P.Presentation) : ¬ S.Respected G := by
   intro hresp
-  cases hopen p₀ with
-  | intro d hd =>
-      cases hrich.open_cont p₀ d hd with
-      | intro q hq =>
-          cases hrich.open_cont p₀ (F.neg d) (P.open_neg hd) with
-          | intro q' hq' =>
-              have a₁ : G.Active p₀ q d :=
-                hmax (full P) (extends_full G) p₀ q d hq
-              have a₂ : G.Active p₀ q' (F.neg d) :=
-                hmax (full P) (extends_full G) p₀ q' (F.neg d) hq'
-              have e₁ : S.selectDet p₀ d = d := hresp a₁
-              have e₂ : S.selectDet p₀ (F.neg d) = F.neg d := hresp a₂
-              have hc : S.selectDet p₀ (F.neg d) = S.selectDet p₀ d :=
-                S.selectDet_coherent p₀ d
-              rw [e₁, e₂] at hc
-              exact F.neg_free d hc
+  obtain ⟨pol, ha, hnres⟩ := P.offer_open p₀
+  let d : F.Determination := ⟨P.offer p₀, pol⟩
+  have hd : P.OpenIn p₀ d := ⟨ha, hnres⟩
+  show False
+  cases hrich.open_cont p₀ d hd with
+  | intro q hq =>
+      cases hrich.open_cont p₀ (F.neg d) (P.open_neg hd) with
+      | intro q' hq' =>
+          have a₁ : G.Active p₀ q d :=
+            hmax (full P) (extends_full G) p₀ q d hq
+          have a₂ : G.Active p₀ q' (F.neg d) :=
+            hmax (full P) (extends_full G) p₀ q' (F.neg d) hq'
+          have e₁ : S.selectDet p₀ d = d := hresp a₁
+          have e₂ : S.selectDet p₀ (F.neg d) = F.neg d := hresp a₂
+          have hc : S.selectDet p₀ (F.neg d) = S.selectDet p₀ d :=
+            S.selectDet_coherent p₀ d
+          rw [e₁, e₂] at hc
+          exact F.neg_free d hc
+
+/-! ### Explicit active-witness compatibility
+
+These hypotheses are useful for clients that want theorem-local sufficient
+conditions.  They are deliberately not the system's explanation of
+productivity: `seed_turn_active` already entails productivity. -/
+
+namespace Compatibility
+
+structure OfferAndSeedActs (G : GenerativeLayer P) : Prop where
+  offer_active : ∀ p d, d.opp = P.offer p → P.OpenIn p d →
+    ∃ q, G.Active p q d
+  seed_turn_active : ∀ p, ∃ q, G.Active p q (F.neg (P.seed p))
+
+theorem of_plenitude {G : GenerativeLayer P}
+    (hmax : Maximal G) (hrich : Rich P) : OfferAndSeedActs G where
+  offer_active := fun p d _ hd => by
+    obtain ⟨q, hq⟩ := hrich.open_cont p d hd
+    exact ⟨q, (maximal_iff_extends_full.mp hmax) p q d hq⟩
+  seed_turn_active := fun p => by
+    obtain ⟨q, hq⟩ := hrich.seed_turn p
+    exact ⟨q, (maximal_iff_extends_full.mp hmax) p q _ hq⟩
+
+theorem entails_productive {G : GenerativeLayer P}
+    (h : OfferAndSeedActs G) : G.Productive := by
+  intro p
+  obtain ⟨q, hq⟩ := h.seed_turn_active p
+  exact ⟨q, ⟨F.neg (P.seed p), hq⟩⟩
+
+end Compatibility
 
 end Possibility
 
-/-! ## 8. Actuality -/
+/-! ## 8. Actuality
 
-namespace Selector
-
-open Possibility
-
-variable {F : Field.{u}} {P : PresentationLayer.{u,v} F} (S : Selector P)
-
-def actual (G : GenerativeLayer P) : GenerativeLayer P where
-  Active := fun p q d => G.Active p q d ∧ S.selectDet p d = d
-  active_continues := fun h => G.active_continues h.1
-
-theorem actual_respected (G : GenerativeLayer P) : S.Respected (S.actual G) :=
-  fun h => h.2
-
-theorem actual_productive {G : GenerativeLayer P}
-    (hmax : Maximal G) (hrich : Rich P)
-    (hsel : ∀ p, S.selectDet p (F.neg (P.seed p)) = F.neg (P.seed p)) :
-    (S.actual G).Productive := by
-  intro p
-  cases hrich.seed_turn p with
-  | intro q hq =>
-      exact ⟨q, ⟨F.neg (P.seed p),
-        ⟨hmax (full P) (extends_full G) p q (F.neg (P.seed p)) hq,
-         hsel p⟩⟩⟩
-
-theorem actual_pole_determinate {G : GenerativeLayer P}
-    {p q q' : P.Presentation} {d e : F.Determination}
-    (h₁ : (S.actual G).Active p q d) (h₂ : (S.actual G).Active p q' e)
-    (hopp : F.Opposed d e) : d = e := by
-  cases F.eq_or_neg d e hopp with
-  | inl he => exact he.symm
-  | inr he =>
-      subst he
-      have hc : S.selectDet p (F.neg d) = S.selectDet p d :=
-        S.selectDet_coherent p d
-      rw [h₂.2, h₁.2] at hc
-      exact absurd hc (F.neg_free d)
-
-theorem actual_target_determinate {G : GenerativeLayer P}
-    {p q q' : P.Presentation} {d : F.Determination}
-    (h₁ : (S.actual G).Active p q d) (h₂ : (S.actual G).Active p q' d) :
-    ∀ e, P.articulates p e → (P.realises q e ↔ P.realises q' e) :=
-  ((S.actual G).active_continues h₁).agree_on_drawn
-    ((S.actual G).active_continues h₂)
-
-end Selector
-
-/-! ### Index: promote the offer, or turn the seed
+### Index: promote the offer, or turn the seed
 
 No free focus map.  The cadence bit chooses the regime; the seed and offer
 supply the opposition.  Under the seeded selector, turning yields the contrary
@@ -926,6 +971,19 @@ namespace Focus
 open Possibility
 
 variable {F : Field.{u}} {P : PresentationLayer.{u,v} F}
+
+/-- Convenience constructor for the original seeded-gradient account.  The
+dynamic core itself needs only the resulting focus. -/
+def ofSeed (T : F.Polarisation) : Focus P where
+  selector := Selector.ofSeed T
+  turns := by
+    intro p
+    change Selector.seedSelect T p (P.seed p).opp = F.neg (P.seed p)
+    simp only [Selector.seedSelect, Field.neg]
+    rw [Selector.seedSelectPole_at_seed T p]
+
+def SeededBy (Φ : Focus P) (T : F.Polarisation) : Prop :=
+  Φ.selector = Selector.ofSeed T
 
 /-- The opposition under consideration: offer if promoting, else seed. -/
 def focusOpp (p : P.Presentation) : F.Opposition :=
@@ -966,7 +1024,7 @@ theorem actual_respected (G : GenerativeLayer P) :
   exact Φ.select_index p
 
 theorem actual_productive {G : GenerativeLayer P}
-    (hrich : ActiveRich P G) :
+    (hmax : Maximal G) (hrich : Rich P) :
     (Φ.actual G).Productive := by
   intro p
   cases hp : P.promoteNext p with
@@ -977,14 +1035,41 @@ theorem actual_productive {G : GenerativeLayer P}
         simp only [Selector.selectDet, index, focusOpp, hp, ↓reduceIte]
       have hOpen' : P.OpenIn p (Φ.index p) := by
         rw [this]; exact Φ.selector.open_select hOpen
-      cases hrich.open_active p (Φ.index p) hOpen' with
+      cases hrich.open_cont p (Φ.index p) hOpen' with
       | intro q hq =>
-          exact ⟨q, ⟨Φ.index p, hq, rfl⟩⟩
+          exact ⟨q, ⟨Φ.index p,
+            hmax (full P) (extends_full G) p q (Φ.index p) hq, rfl⟩⟩
   | false =>
-      cases hrich.seed_turn_active p with
+      cases hrich.seed_turn p with
       | intro q hq =>
           have hi : Φ.index p = F.neg (P.seed p) := Φ.index_turn p hp
-          exact ⟨q, ⟨Φ.index p, ⟨by rw [hi]; exact hq, rfl⟩⟩⟩
+          exact ⟨q, ⟨Φ.index p,
+            ⟨by rw [hi]; exact hmax (full P) (extends_full G) p q
+                  (F.neg (P.seed p)) hq, rfl⟩⟩⟩
+
+/-- Direct active witnesses are a sufficient compatibility route, but their
+seed-turn component already entails productivity and is not used as the
+system-level explanation. -/
+theorem actual_productive_compatibility {G : GenerativeLayer P}
+    (hready : Compatibility.OfferAndSeedActs G) :
+    (Φ.actual G).Productive := by
+  intro p
+  cases hp : P.promoteNext p with
+  | true =>
+      obtain ⟨pol, ha, hr⟩ := P.offer_open p
+      have hOpen : P.OpenIn p ⟨P.offer p, pol⟩ := ⟨ha, hr⟩
+      have hidx : (Φ.index p).opp = P.offer p := Φ.index_promote_opp p hp
+      have hs : Φ.index p = Φ.selector.selectDet p ⟨P.offer p, pol⟩ := by
+        simp only [Selector.selectDet, index, focusOpp, hp, ↓reduceIte]
+      have hOpen' : P.OpenIn p (Φ.index p) := by
+        rw [hs]
+        exact Φ.selector.open_select hOpen
+      obtain ⟨q, hq⟩ := hready.offer_active p (Φ.index p) hidx hOpen'
+      exact ⟨q, ⟨Φ.index p, hq, rfl⟩⟩
+  | false =>
+      obtain ⟨q, hq⟩ := hready.seed_turn_active p
+      have hi : Φ.index p = F.neg (P.seed p) := Φ.index_turn p hp
+      exact ⟨q, ⟨Φ.index p, ⟨by rw [hi]; exact hq, rfl⟩⟩⟩
 
 theorem actual_index_unique {G : GenerativeLayer P}
     {p q q' : P.Presentation} {d d' : F.Determination}
@@ -1100,6 +1185,63 @@ theorem actual_alternates_turn {G : GenerativeLayer P}
     exact P.resolves_neg (P.realises_resolves hseed)
   exact hopen.2 hres
 
+/-- Every actual edge flips cadence.  Seed effectiveness is needed only when
+the source is in turn cadence. -/
+theorem actual_cadence_flip_of_turn_seed {G : GenerativeLayer P}
+    {p q : P.Presentation} {d : F.Determination}
+    (h : (Φ.actual G).Active p q d)
+    (hseed : P.promoteNext p = false → P.realises p (P.seed p)) :
+    P.promoteNext q = !P.promoteNext p := by
+  cases hp : P.promoteNext p with
+  | false =>
+      have hq := Φ.actual_alternates_turn h hp (hseed hp)
+      simp [hq]
+  | true =>
+      have hq := Φ.actual_alternates_promote h hp
+      simp [hq]
+
+theorem actual_cadence_flip {G : GenerativeLayer P}
+    {p q : P.Presentation} {d : F.Determination}
+    (h : (Φ.actual G).Active p q d)
+    (hseed : P.realises p (P.seed p)) :
+    P.promoteNext q = !P.promoteNext p :=
+  Φ.actual_cadence_flip_of_turn_seed h (fun _ => hseed)
+
+theorem actual_cadence_ne {G : GenerativeLayer P}
+    {p q : P.Presentation} {d : F.Determination}
+    (h : (Φ.actual G).Active p q d)
+    (hseed : P.realises p (P.seed p)) :
+    P.promoteNext q ≠ P.promoteNext p := by
+  rw [Φ.actual_cadence_flip h hseed]
+  intro heq
+  exact (Bool.not_eq_self _).mp heq
+
+/-- Cadence at the end of a finite actual run is determined by run length and
+initial cadence.  The chain supplies the transitions; no productivity premise
+is used. -/
+theorem actual_chain_cadence {G : GenerativeLayer P} :
+    ∀ {n : Nat} {p q : P.Presentation}, Chain (Φ.actual G) n p q →
+      (P.promoteNext p = false → P.realises p (P.seed p)) →
+      P.promoteNext q = Cadence.after n (P.promoteNext p) := by
+  intro n p q h
+  induction h with
+  | refl p =>
+      intro _
+      rfl
+  | @step n p q r d c a ih =>
+      intro hseed
+      have hseedq : P.promoteNext q = false → P.realises q (P.seed q) := by
+        intro hturn
+        cases n with
+        | zero =>
+            cases c
+            exact hseed hturn
+        | succ n =>
+            exact (Φ.actual G).chain_end_seed_realised c
+      rw [Φ.actual_cadence_flip_of_turn_seed a hseedq]
+      rw [ih hseed]
+      rfl
+
 /-- **The swirl.**  Whatever a promoting act settles, the next actual act
 reverses.  Actual oscillation, not merely possible oscillation. -/
 theorem actual_promote_then_reverse {G : GenerativeLayer P}
@@ -1116,13 +1258,17 @@ structure LatentActualSystem where
   field : Field.{u}
   presentations : PresentationLayer.{u,v} field
   possible : GenerativeLayer presentations
-  gradient : field.Polarisation
+  focus : Focus presentations
 
-/-- Optional evidence that the system has enough active transitions for the
-productivity and possible/non-selected results. -/
-def LatentActualSystem.GenerativelyRich
-    (S : LatentActualSystem.{u,v}) : Prop :=
-  Possibility.ActiveRich S.presentations S.possible
+/-- Optional system-level plenitude.  Its statement avoids a direct active-act
+existential: presentation-level continuation witnesses are transferred into
+the chosen generative layer by maximality.  `maximal_iff_extends_full` also
+makes clear that this is extensionally full, not logically weaker than the
+resulting active witnesses. -/
+structure LatentActualSystem.Plenitude
+    (S : LatentActualSystem.{u,v}) : Prop where
+  rich : Possibility.Rich S.presentations
+  maximal : Possibility.Maximal S.possible
 
 /-- A rooted actual history carries one seed-effectiveness premise at its root;
 all positive successors inherit it from continuation. -/
@@ -1135,19 +1281,9 @@ namespace LatentActualSystem
 
 variable (S : LatentActualSystem.{u,v})
 
-def selector : Selector S.presentations := Selector.ofSeed S.gradient
+abbrev selector : Selector S.presentations := S.focus.selector
 
-theorem selector_turns (p : S.presentations.Presentation) :
-    S.selector.select p (S.presentations.seed p).opp =
-      S.field.neg (S.presentations.seed p) := by
-  change Selector.seedSelect S.gradient p (S.presentations.seed p).opp =
-    S.field.neg (S.presentations.seed p)
-  simp only [Selector.seedSelect, Field.neg]
-  rw [Selector.seedSelectPole_at_seed S.gradient p]
-
-def focusing : Focus S.presentations where
-  selector := S.selector
-  turns := S.selector_turns
+abbrev focusing : Focus S.presentations := S.focus
 
 def actual : GenerativeLayer S.presentations := S.focusing.actual S.possible
 
@@ -1188,26 +1324,26 @@ theorem open_nonexhaustive : S.presentations.OpenNonExhaustive :=
 theorem fixedPointFree : ∀ d, S.field.neg d ≠ d :=
   S.field.fixedPointFree
 
-theorem possible_productive (hrich : GenerativelyRich S) :
+theorem possible_productive (H : Plenitude S) :
     S.possible.Productive :=
-  Possibility.productive_of_activeRich hrich
+  Possibility.productive_of_plenitude H.maximal H.rich
 
-theorem actual_productive (hrich : GenerativelyRich S) :
+theorem actual_productive (H : Plenitude S) :
     S.actual.Productive :=
-  S.focusing.actual_productive hrich
+  S.focusing.actual_productive H.maximal H.rich
 
 theorem actual_respected : S.selector.Respected S.actual :=
   S.focusing.actual_respected S.possible
 
-theorem possible_not_respected (hrich : GenerativelyRich S)
+theorem possible_not_respected (H : Plenitude S)
     (p : S.presentations.Presentation) :
     ¬ S.selector.Respected S.possible :=
-  Possibility.activeRich_excludes_selection S.selector hrich p
+  Possibility.plenitude_excludes_selection S.selector H.maximal H.rich p
 
 theorem Rooted.possible_not_respected (R : Rooted S)
-    (hrich : GenerativelyRich S) :
+    (H : Plenitude S) :
     ¬ S.selector.Respected S.possible :=
-  S.possible_not_respected hrich R.initial
+  S.possible_not_respected H R.initial
 
 theorem actual_determinate {p q q' : S.presentations.Presentation}
     {d d' : S.field.Determination}
@@ -1233,11 +1369,12 @@ theorem actual_promotes
   S.focusing.actual_promotes h hp
 
 theorem actual_promotes_gradient
+    (T : S.field.Polarisation) (hfocus : S.focus.SeededBy T)
     {p q : S.presentations.Presentation} {d : S.field.Determination}
     (h : S.actual.Active p q d) (hp : S.presentations.promoteNext p = true)
     (hseed : S.presentations.Resolves p (S.presentations.seed p)) :
-    d = S.gradient.atOpp (S.presentations.offer p) :=
-  S.focusing.actual_promotes_gradient S.gradient rfl h hp hseed
+    d = T.atOpp (S.presentations.offer p) :=
+  S.focusing.actual_promotes_gradient T hfocus h hp hseed
 
 theorem not_fullResolution (p : S.presentations.Presentation) :
     ¬ S.presentations.FullResolution :=
@@ -1285,6 +1422,54 @@ theorem actual_alternates_turn
     S.presentations.promoteNext q = true :=
   S.focusing.actual_alternates_turn h hp (S.reachable_seed_realised R hr)
 
+/-- Adjacent reachable actual presentations cannot have the same cadence. -/
+theorem actual_cadence_ne
+    (R : Rooted S) {p q : S.presentations.Presentation}
+    {d : S.field.Determination}
+    (hp : S.Reachable R p) (h : S.actual.Active p q d) :
+    S.presentations.promoteNext q ≠ S.presentations.promoteNext p :=
+  S.focusing.actual_cadence_ne h (S.reachable_seed_realised R hp)
+
+/-- Run-level cadence parity from any reachable presentation. -/
+theorem actual_chain_cadence_from
+    (R : Rooted S) {n : Nat} {p q : S.presentations.Presentation}
+    (hp : S.Reachable R p) (h : Chain S.actual n p q) :
+    S.presentations.promoteNext q =
+      Cadence.after n (S.presentations.promoteNext p) :=
+  S.focusing.actual_chain_cadence h
+    (fun _ => S.reachable_seed_realised R hp)
+
+/-- Root-specialised run-level parity. -/
+theorem Rooted.actual_chain_cadence
+    (R : Rooted S) {n : Nat} {q : S.presentations.Presentation}
+    (h : Chain S.actual n R.initial q) :
+    S.presentations.promoteNext q =
+      Cadence.after n (S.presentations.promoteNext R.initial) :=
+  S.focusing.actual_chain_cadence h (fun _ => R.initial_seed_realised)
+
+theorem actual_chain_cadence_even
+    (R : Rooted S) {k : Nat} {p q : S.presentations.Presentation}
+    (hp : S.Reachable R p) (h : Chain S.actual (2 * k) p q) :
+    S.presentations.promoteNext q = S.presentations.promoteNext p := by
+  simpa using S.actual_chain_cadence_from R hp h
+
+theorem actual_chain_cadence_odd
+    (R : Rooted S) {k : Nat} {p q : S.presentations.Presentation}
+    (hp : S.Reachable R p) (h : Chain S.actual (2 * k + 1) p q) :
+    S.presentations.promoteNext q = !S.presentations.promoteNext p := by
+  simpa using S.actual_chain_cadence_from R hp h
+
+/-- Two consecutive actual acts restore the initial cadence. -/
+theorem actual_two_step_cadence
+    (R : Rooted S) {p q r : S.presentations.Presentation}
+    {d e : S.field.Determination}
+    (hp : S.Reachable R p) (h₁ : S.actual.Active p q d)
+    (h₂ : S.actual.Active q r e) :
+    S.presentations.promoteNext r = S.presentations.promoteNext p := by
+  have hchain : Chain S.actual 2 p r :=
+    Chain.step (Chain.step (Chain.refl p) h₁) h₂
+  simpa using S.actual_chain_cadence_from R hp hchain
+
 /-- **The swirl, at system level.**  Whatever a promoting act settles, the next
 actual act reverses, and the archive has still moved on. -/
 theorem actual_promote_then_reverse
@@ -1296,6 +1481,20 @@ theorem actual_promote_then_reverse
     Archive.precedes_trans S.presentations
       (Archive.active_precedes S.presentations h₁.1)
       (Archive.active_precedes S.presentations h₂.1)⟩
+
+/-- At every promoting parity position in a rooted actual run, the following
+actual act reverses the determination just settled and advances the archive. -/
+theorem Rooted.actual_chain_swirl
+    (R : Rooted S) {n : Nat} {p q r : S.presentations.Presentation}
+    {d e : S.field.Determination}
+    (hprefix : Chain S.actual n R.initial p)
+    (h₁ : S.actual.Active p q d) (h₂ : S.actual.Active q r e)
+    (hparity : Cadence.after n
+      (S.presentations.promoteNext R.initial) = true) :
+    e = S.field.neg d ∧ Archive.Precedes S.presentations p r := by
+  have hp : S.presentations.promoteNext p = true :=
+    (LatentActualSystem.Rooted.actual_chain_cadence S R hprefix).trans hparity
+  exact S.actual_promote_then_reverse h₁ h₂ hp
 
 end LatentActualSystem
 
@@ -1378,6 +1577,10 @@ structure St where
   base : Bool
   val : Nat → Option Bool
   clock : Nat
+  /-- Number of predecessor traces already carried into this stage.  This is
+  separate from `clock`: settling a distant opposition must not silently make
+  a block of unrelated archive tokens effective. -/
+  history : Nat
   seedOpp : Nat
   seedPole : Bool
   seed_ok : seedOpp < clock ∧ val seedOpp = some seedPole
@@ -1391,12 +1594,12 @@ def offerOf (s : St) : Idx := Idx.opp s.clock
 def articulates (s : St) : field.Determination → Prop
   | ⟨Idx.base, _⟩ => True
   | ⟨Idx.opp _, _⟩ => True
-  | ⟨Idx.tr m, _⟩ => m < s.clock
+  | ⟨Idx.tr m, _⟩ => m < s.history
 
 def realises (s : St) : field.Determination → Prop
   | ⟨Idx.base, a⟩ => a = s.base
   | ⟨Idx.opp k, a⟩ => k < s.clock ∧ s.val k = some a
-  | ⟨Idx.tr m, a⟩ => a = true ∧ m < s.clock
+  | ⟨Idx.tr m, a⟩ => a = true ∧ m < s.history
 
 theorem offer_open_of (s : St) :
     ∃ pol, articulates s ⟨offerOf s, pol⟩ ∧
@@ -1416,7 +1619,7 @@ abbrev layer : PresentationLayer.{0,0} field where
   Presentation := St
   articulates := articulates
   realises := realises
-  trace := fun s => ⟨Idx.tr s.clock, true⟩
+  trace := fun s => ⟨Idx.tr s.history, true⟩
   seed := seedOf
   offer := offerOf
   promoteNext := fun s => s.promoteNext
@@ -1443,7 +1646,7 @@ abbrev layer : PresentationLayer.{0,0} field where
         | tr m => cases a <;> simp_all [Field.neg, realises]
   trace_fresh := by
     intro p h
-    exact absurd h (Nat.lt_irrefl p.clock)
+    exact absurd h (Nat.lt_irrefl p.history)
   offer_open := offer_open_of
 
 /-- Settle opposition `k` on pole `a`.  Cadence becomes "was already resolved"
@@ -1452,6 +1655,7 @@ def cont (s : St) (k : Nat) (a : Bool) : St where
   base := s.base
   val := fun j => if j = k then some a else (if j < s.clock then s.val j else none)
   clock := s.clock + k + 2
+  history := s.history + 1
   seedOpp := k
   seedPole := a
   seed_ok := by
@@ -1461,7 +1665,7 @@ def cont (s : St) (k : Nat) (a : Bool) : St where
 
 theorem cont_continues (s : St) (k : Nat) (a : Bool) :
     layer.Continues s (cont s k a) ⟨Idx.opp k, a⟩ := by
-  refine ⟨?_, ?_, ?_, ?_, rfl, ?_⟩
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, rfl, ?_⟩
   · show k < (cont s k a).clock ∧ (cont s k a).val k = some a
     simp only [cont, ite_true]
     exact ⟨by omega, trivial⟩
@@ -1485,8 +1689,9 @@ theorem cont_continues (s : St) (k : Nat) (a : Bool) :
             exact ⟨fun hx => absurd hx.2 (fun hc => Option.noConfusion hc),
                    fun hx => absurd hx.1 hj⟩
     | tr m =>
-        have hm : m < s.clock := he
-        show (pol = true ∧ m < (cont s k a).clock) ↔ (pol = true ∧ m < s.clock)
+        have hm : m < s.history := he
+        show (pol = true ∧ m < (cont s k a).history) ↔
+          (pol = true ∧ m < s.history)
         simp only [cont]
         exact ⟨fun hx => ⟨hx.1, hm⟩, fun hx => ⟨hx.1, by omega⟩⟩
   · intro e he
@@ -1496,11 +1701,53 @@ theorem cont_continues (s : St) (k : Nat) (a : Bool) :
       | base => trivial
       | opp j => trivial
       | tr m =>
-          have hm : m < s.clock := he
-          show m < (cont s k a).clock
+          have hm : m < s.history := he
+          show m < (cont s k a).history
           simp only [cont]; omega
-  · change s.clock < s.clock + k + 2
-    omega
+  · change true = true ∧ s.history < s.history + 1
+    exact ⟨rfl, by omega⟩
+  · intro e hq hnot
+    cases e with
+    | mk o c =>
+      cases o with
+      | base => exact False.elim (hnot trivial)
+      | opp j => exact False.elim (hnot trivial)
+      | tr m =>
+          have hmq : m < s.history + 1 := hq
+          have hmp : ¬ m < s.history := hnot
+          have hm : m = s.history := by omega
+          exact Or.inr (by
+            change Idx.tr s.history = Idx.tr m
+            rw [hm])
+  · intro e hne hq
+    cases e with
+    | mk o c =>
+      cases o with
+      | base =>
+          exact Or.inl (by
+            show c = s.base
+            simpa only [realises, cont] using hq)
+      | opp j =>
+          have hjk : j ≠ k := fun hj => hne (by cases hj; rfl)
+          have hq' : j < (cont s k a).clock ∧
+              (cont s k a).val j = some c := hq
+          simp only [cont] at hq'
+          rw [if_neg hjk] at hq'
+          cases Nat.decLt j s.clock with
+          | isTrue hj =>
+              rw [if_pos hj] at hq'
+              exact Or.inl ⟨hj, hq'.2⟩
+          | isFalse hj =>
+              rw [if_neg hj] at hq'
+              exact False.elim (Option.noConfusion hq'.2)
+      | tr m =>
+          have hc : c = true := hq.1
+          have hm : m < s.history + 1 := by
+            simpa only [cont] using hq.2
+          by_cases hold : m < s.history
+          · exact Or.inl ⟨hc, hold⟩
+          · have heq : m = s.history := by omega
+            exact Or.inr (by cases hc; cases heq; rfl)
   · -- cadence: decide(Resolves) = true ↔ ¬ OpenIn
     change (decide (k < s.clock ∧ s.val k ≠ none) = true) ↔
       ¬ (True ∧ ¬ ((k < s.clock ∧ s.val k = some a) ∨
@@ -1517,14 +1764,21 @@ theorem rich : Possibility.Rich layer where
     cases d with
     | mk o a =>
       cases o with
-        | base => cases a <;> cases p.base <;>
-            simp_all [PresentationLayer.OpenIn, PresentationLayer.Resolves,
-              realises, Field.neg]
+        | base =>
+            cases a with
+            | false =>
+                cases hb : p.base with
+                | false => exact False.elim (hd.2 (Or.inl hb.symm))
+                | true  => exact False.elim (hd.2 (Or.inr hb.symm))
+            | true =>
+                cases hb : p.base with
+                | false => exact False.elim (hd.2 (Or.inr hb.symm))
+                | true  => exact False.elim (hd.2 (Or.inl hb.symm))
         | opp k => exact ⟨cont p k a, cont_continues p k a⟩
         | tr m =>
-            cases a <;>
-              simp_all [PresentationLayer.OpenIn, PresentationLayer.Resolves,
-                articulates, realises, Field.neg] <;> omega
+            cases a with
+            | false => exact False.elim (hd.2 (Or.inr ⟨rfl, hd.1⟩))
+            | true  => exact False.elim (hd.2 (Or.inl ⟨rfl, hd.1⟩))
   seed_turn := by
     intro p
     refine ⟨cont p p.seedOpp (!p.seedPole), ?_⟩
@@ -1544,35 +1798,39 @@ abbrev gradient : field.Polarisation where
 
 abbrev observers : ObserverLayer layer where
   AppearsTo := fun p o d => layer.realises p o ∧ layer.realises p d
+  observer_is_realised := fun h => h.1
   observed_is_realised := fun h => h.2
 
 /-- Start in turn cadence on opp 0; offer is clock (=1). -/
 def s₀ : St :=
-  ⟨true, fun j => if j = 0 then some true else none, 1, 0, true,
+  ⟨true, fun j => if j = 0 then some true else none, 1, 0, 0, true,
     ⟨Nat.zero_lt_one, rfl⟩, false⟩
+
+abbrev focus : Focus layer := Focus.ofSeed gradient
 
 abbrev system : LatentActualSystem.{0,0} where
   field := field
   presentations := layer
   possible := generation
-  gradient := gradient
+  focus := focus
 
-abbrev systemRich : LatentActualSystem.GenerativelyRich system :=
-  Possibility.activeRich_of_plenitude Possibility.full_maximal rich
+abbrev plenitude : LatentActualSystem.Plenitude system where
+  rich := rich
+  maximal := Possibility.full_maximal
 
 abbrev rooted : LatentActualSystem.Rooted system where
   initial := s₀
   initial_seed_realised := seed_realised s₀
 
 theorem possible_productive : generation.Productive :=
-  system.possible_productive systemRich
+  system.possible_productive plenitude
 
 theorem actual_productive : system.actual.Productive :=
-  system.actual_productive systemRich
+  system.actual_productive plenitude
 
 theorem possible_not_respected :
     ¬ system.selector.Respected generation :=
-  system.possible_not_respected systemRich s₀
+  system.possible_not_respected plenitude s₀
 
 theorem s₀_reachable : system.Reachable rooted s₀ :=
   system.initial_reachable rooted
@@ -1604,8 +1862,8 @@ theorem actual_promote₁ :
   refine ⟨cont_continues s₁ s₁.clock true, ?_⟩
   -- index at promote = select at offer = gradient true at opp clock
   change system.focusing.index s₁ = ⟨Idx.opp s₁.clock, true⟩
-  simp only [Focus.index, Focus.focusOpp, LatentActualSystem.focusing,
-    LatentActualSystem.selector, offerOf, seedOf]
+  simp only [LatentActualSystem.focusing, system, focus, Focus.ofSeed,
+    Focus.index, Focus.focusOpp, offerOf, seedOf]
   -- ofSeed / seedSelect at opp clock, seed is opp 0
   unfold Selector.ofSeed Selector.seedSelect Selector.seedSelectPole
   have hne : (seedOf s₁).opp ≠ Idx.opp s₁.clock := by
@@ -1631,6 +1889,22 @@ theorem actual_novelty :
     have : s₁.seedOpp < s₁.clock := s₁.seed_ok.1
     omega⟩
 
+/-- The concrete transition-locality law does real work: after the first act,
+the newly drawn trace opposition is exactly the predecessor's history token. -/
+theorem first_new_articulation_is_trace {e : field.Determination}
+    (hq : layer.articulates s₁ e) (hp : ¬ layer.articulates s₀ e) :
+    field.Opposed (layer.trace s₀) e := by
+  exact (cont_continues s₀ 0 false).newly_articulated_is_trace
+    (layer.articulates_neg (layer.realises_articulates (seed_realised s₀))) hq hp
+
+/-- Away from the turned opposition, the only newly effective content in the
+first successor is the predecessor's trace. -/
+theorem first_off_target_novel_is_trace {e : field.Determination}
+    (hoff : ¬ field.Opposed (field.neg ⟨Idx.opp 0, true⟩) e)
+    (hp : ¬ layer.realises s₀ e) (hq : layer.realises s₁ e) :
+    e = layer.trace s₀ :=
+  (cont_continues s₀ 0 false).off_target_novel_is_trace hoff hp hq
+
 theorem seed_written : seedOf s₁ = ⟨Idx.opp 0, false⟩ := rfl
 
 theorem oscillation_possible :
@@ -1644,23 +1918,66 @@ theorem oscillation_possible :
 
 end Stage
 
+/-! ## Axiom regression checks
+
+These guards make the choice-freedom claim executable.  In particular they
+fail if broad automation reintroduces `Classical.choice` into the concrete
+richness/productivity/non-selection route. -/
+
+/--
+info: 'LatentActual.Stage.rich' depends on axioms: [propext, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Stage.rich
+
+/--
+info: 'LatentActual.Stage.possible_productive' depends on axioms: [propext, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Stage.possible_productive
+
+/--
+info: 'LatentActual.Stage.actual_productive' depends on axioms: [propext, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Stage.actual_productive
+
+/--
+info: 'LatentActual.Stage.possible_not_respected' depends on axioms: [propext, Quot.sound]
+-/
+#guard_msgs in
+#print axioms Stage.possible_not_respected
+
 /-! ## 12. Where the account now stands
 
-Premise-reduced relative to revision 9.
+Premise-reduced relative to revision 9, with revision 10's explanatory
+regression repaired.
 
 * **Semantic core.**  Resolution is definitionally the realisation of either
   pole.  Involution, resolution persistence, offer/seed freshness and refreshed
   offer avoidance are theorems rather than constructor burdens.
-* **Generative thickness.**  `ActiveRich` states exactly the active open and
-  seed-turn transitions used by productivity and possible non-selection.
-  `Rich + Maximal` remains only as a compatibility route into `ActiveRich`.
-* **Rooted histories.**  The system carries no global seed-effectiveness axiom.
-  A `Rooted` capability assumes it once; every actual successor realises its
-  written seed, yielding reachable nullity failure, latency and turn cadence.
+* **Generative thickness.**  Optional `Plenitude` bundles `Rich + Maximal` as
+  the system-level route to productivity and possible non-selection.
+  `maximal_iff_extends_full` exposes its extensional strength.  The narrower
+  `Compatibility.OfferAndSeedActs` interface is retained for theorem-local
+  clients and explicitly proves that its seed-turn clause entails productivity.
+* **Focus.**  The four-field dynamic core stores a `Focus`, not a uniform
+  polarisation.  This drops uniformity, not total selection: a focus still
+  chooses at every presentation and opposition.  `Focus.ofSeed` and `SeededBy`
+  recover gradient-specific conclusions when that stronger origin matters.
+* **Transition locality and archive.**  An immediate successor realises the
+  predecessor's exact trace; later stages keep its opposition resolved.
+  `locality` and `realised_locality` exclude unrelated new articulation and
+  off-target realisation.  Stage's independent history counter witnesses this.
+* **Rooted runs.**  The system carries no global seed-effectiveness axiom.
+  `Rooted` assumes it once and successors inherit it.  Finite actual chains now
+  have proved endpoint cadence, even/odd parity, and parity-indexed swirl.
 * **The swirl.**  Conditional reversal, determinacy, archive movement,
-  promote cadence and no-return use neither richness nor rootedness.
-* **Optional observers.**  Observer structure is independent of the four-field
-  dynamic system core.
+  promote cadence and no-return use neither plenitude nor global seed axioms.
+* **Optional observers.**  The observer layer is outside the dynamic core, but
+  observation is internal when supplied: observer and observed determination
+  are both realised at the presentation.  `IsObserverAt` is derived from an
+  appearance instead of imposed as an unused global tag.
 * **Void and Stage.**  Absolute nullity remains coherent at layer strength;
   the Stage model supplies both optional richness and rooted-history evidence.
 
