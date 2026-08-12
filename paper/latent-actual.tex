@@ -1,0 +1,1324 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{linkblue}{HTML}{1F4E79}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=linkblue,
+  urlcolor=linkblue,
+  pdftitle={Actuality Without Exhaustion},
+  pdfauthor={Latent-Actual Project},
+  pdfsubject={A Lean-checked structural metaphysics of latency and actuality},
+  pdfkeywords={metaphysics, actuality, potentiality, process, Lean 4}
+}
+
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=0.35em, topsep=0.5em}
+\urlstyle{tt}
+
+\newtheorem{formalresult}{Formal result}[section]
+\newtheorem{proposition}[formalresult]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[formalresult]{Definition}
+\theoremstyle{remark}
+\newtheorem*{qualification}{Qualification}
+
+\newcommand{\lean}[1]{\nolinkurl{#1}}
+\newcommand{\Art}{\mathsf{Art}}
+\newcommand{\Real}{\mathsf{Real}}
+\newcommand{\Res}{\mathsf{Res}}
+\newcommand{\Lat}{\mathsf{Lat}}
+\newcommand{\Exc}{\mathsf{Exc}}
+\newcommand{\Opn}{\mathsf{Open}}
+\newcommand{\Und}{\mathsf{Undrawn}}
+\newcommand{\Seed}{\mathsf{seed}}
+\newcommand{\Offer}{\mathsf{offer}}
+\newcommand{\Trace}{\mathsf{trace}}
+\newcommand{\Prom}{\mathsf{promoteNext}}
+\newcommand{\Index}{\mathsf{index}}
+\newcommand{\Active}{\mathsf{Active}}
+\newcommand{\After}{\mathsf{after}}
+\newcommand{\opp}{\mathsf{opp}}
+\newcommand{\pole}{\mathsf{pole}}
+\newcommand{\negd}[1]{\overline{#1}}
+
+\title{\textbf{Actuality Without Exhaustion}\\[0.45em]
+  \large Opposition, Focus, and Recurrence Without Return}
+\author{Latent--Actual Project}
+\date{Revision 11 formalization, August 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper develops a Lean-checked structural metaphysics of actuality and
+latency. Determinations inhabit unlabelled two-pole oppositions; presentations
+distinguish articulation from realization; and continuations settle a target
+while carrying a fresh trace of their predecessor. Under an explicit
+plenitude postulate, the possible is locally productive and exceeds every
+single selection whenever a presentation is supplied, whereas a focus defines
+a productive, target-determinate actual sublayer. On histories rooted in one
+effective seed, realized, excluded, open, and undrawn content coexist at every
+reachable presentation.
+An articulation-complete trace-encoding law marks archival precedence within later
+presentations as a strict past. A two-beat cadence makes each promotion
+followed by reversal, yet this past grows, yielding reversal -- and,
+in the wider possible layer, restricted qualitative recurrence -- without
+return. An absolutely null countermodel shows that the formalism does not
+derive actuality from presentation alone. Its achievement is therefore
+conditional and structural: it identifies assumptions under which determinacy,
+novelty, non-exhaustion, internal succession, and historical irreversibility
+are jointly coherent.
+\end{abstract}
+
+\noindent\textbf{Keywords:}
+actuality; latency; opposition; process metaphysics; modality; recurrence;
+formalization; Lean 4
+
+\tableofcontents
+\newpage
+
+\section{The problem}
+
+Metaphysics repeatedly confronts a cluster of tensions. If actuality is
+determinate, how can it remain open to more than it presently is? If change
+preserves enough structure to count as continuation, how can it be genuinely
+novel? If a quality returns, must the world itself return? And if several
+continuations are possible, what distinguishes the one that is actual without
+reducing possibility to a disguised list of actual facts?
+
+The distinction between potentiality and actuality is ancient, but the present
+account is not an exegesis of Aristotle's \emph{Metaphysics} \cite{Aristotle2016}
+or of any later system. It isolates a narrower structural question:
+
+\begin{quote}
+Can one give a consistent, explicit account in which actuality is locally
+determinate and generative, latency remains permanent, qualitative reversal
+coexists with historical advance, and the possible exceeds every single
+actual orientation?
+\end{quote}
+
+The answer formalized here is conditional but positive. The conditions are:
+
+\begin{enumerate}[label=(\roman*)]
+  \item a family of binary, unlabelled oppositions;
+  \item presentations that distinguish articulation from realization;
+  \item continuations that settle a target, preserve old articulation, and
+        carry a fresh trace;
+  \item an optional plenitude principle for lawful continuations;
+  \item a total focus that selects the target of actual transitions; and
+  \item one realized seed at the root of the history under consideration.
+\end{enumerate}
+
+From these premises the formal development proves local productivity,
+target determinacy, permanent latent excess, a strict archive order, finite
+no-return, cadence parity, and the swirl: every promotion is followed by
+realization of the promoted determination's contrary while the archive moves
+on.
+
+This result has a deliberately modest modal force. It is not a proof that the
+world has the proposed structure. It is not a derivation of being from
+non-being. It is a representation theorem: if the primitives and transition
+laws have the stated form, then a distinctive package of metaphysical
+consequences follows. The Lean formalization makes the conditional character
+useful rather than evasive, because it records exactly which conclusions use
+which premises and supplies countermodels where stronger conclusions fail.
+
+\section{Formal method and interpretive discipline}
+
+\subsection{Why formalize a metaphysical argument?}
+
+Formalization cannot decide whether a metaphysical primitive is adequate to
+experience or nature. It can, however, perform three kinds of conceptual work.
+First, it prevents equivocation between nearby notions. Here
+\emph{realized}, \emph{articulated}, \emph{open}, and \emph{possible} have
+different types and proof conditions. Second, it exposes hidden premises.
+No-return, for example, is not obtained from bare opposition; it depends on
+fresh traces, their carriage, and monotone articulation. Third, it separates
+implication from interpretation. Lean verifies the implication. The
+metaphysical reading remains an argument whose scope can be assessed
+independently.
+
+The companion source is \lean{LatentActual.lean}, revision 11. It imports only
+Lean's core \lean{Init} module and is checked with Lean 4.24.0
+\cite{deMouraUllrich2021}. The concrete
+model and principal regression routes contain no user-declared
+\lean{axiom}, \lean{sorry}, \lean{admit}, or \lean{native_decide}; executable
+\texttt{\#print axioms} guards report only \lean{propext} and
+\lean{Quot.sound} for
+the checked declarations.
+
+\subsection{Three levels}
+
+The theory is easiest to understand when three levels are kept separate.
+
+\begin{description}
+  \item[Determinations.]
+  These are poles within oppositions. Contrary determination belongs to the
+  same opposition.
+
+  \item[Presentations.]
+  These assign articulation and realization status to determinations and carry
+  a seed, offer, trace, and cadence bit.
+
+  \item[Transition layers.]
+  These relate a source presentation, successor presentation, and settled
+  determination. The possible layer records lawful continuations; the actual
+  layer is the part of that relation selected by a focus.
+\end{description}
+
+This separation blocks two tempting slides. First, the contrary operation on a
+determination is not propositional negation. Second, there are two technical
+senses near the ordinary word \emph{actual}: \(\Real_p(d)\) is a predicate
+saying that content \(d\) is realized in presentation \(p\), while an actual
+transition is an edge in a focused subrelation. A realized content is not
+itself a transition, and an actual transition is defined through more than the
+realization predicate.
+
+\subsection{Conditionality as a result}
+
+The account labels its strong principles instead of hiding them. The open
+offer, fresh trace, and articulation-complete trace-encoding law are fields of the
+presentation structure. Trace carriage and cadence are fields of
+continuation. Plenitude is an optional system-level capability. Rooted seed
+effectiveness is a local historical premise. Thus the formal result does not
+say that opposition alone produces time, novelty, or being. It says which
+package of assumptions suffices, how the pieces interact, and where they do
+not.
+
+\section{Opposition before orientation}
+
+\subsection{The field}
+
+A \lean{Field} consists of a type \(O\) of oppositions and, for each
+\(o\in O\), a type \(P(o)\) of poles. It provides a pole exchange
+\[
+  \mathsf{flip}_o : P(o)\longrightarrow P(o)
+\]
+with no fixed point, together with the dichotomy
+\[
+  \forall p,q\in P(o),\qquad p=q\ \lor\ p=\mathsf{flip}_o(q).
+\]
+Equality of oppositions is decidable. A determination is a dependent pair
+\[
+  d=(\opp(d),\pole(d)),\qquad \pole(d)\in P(\opp(d)).
+\]
+Its contrary is
+\[
+  \negd d=(\opp(d),\mathsf{flip}(\pole(d))).
+\]
+
+The two-pole dichotomy and fixed-point freedom imply, rather than assume, that
+flip is involutive:
+\[
+  \negd{\negd d}=d,\qquad \negd d\neq d.
+\]
+These are \lean{Field.neg_involutive} and \lean{Field.neg_free}. If two
+determinations share an opposition, then one is either the other or its
+contrary (\lean{Field.eq_or_neg}).
+
+\begin{qualification}
+A bare \lean{Field} does not require every \(P(o)\) to be inhabited. Strictly
+speaking, an inhabited fibre is a free transitive two-element action, while an
+empty fibre satisfies the universally quantified field laws vacuously. A
+total selector in a full system supplies a pole at every opposition it is
+asked to select. Claims that all field fibres are two-pole torsors should
+therefore be read with this inhabitation qualification.
+\end{qualification}
+
+\subsection{Unlabelled opposition and orientation}
+
+The field is prior to a global labelling of its poles. Nothing in its
+definition calls one pole positive, true, or privileged. A
+\lean{Polarisation} is additional structure: a dependent section choosing a
+pole at every opposition. Exchanging every choice gives the opposite
+polarisation, and exchanging twice restores the first.
+
+This order of explanation matters. Difference is primitive at the field level;
+orientation is supplied later. The theory can therefore distinguish the fact
+that a determinable has two poles from the act of taking one pole as the
+selected outcome in a presentation.
+
+\section{Presentation and stratified latency}
+
+\subsection{Articulation, realization, and resolution}
+
+For a presentation \(p\) and determination \(d\), write
+\[
+  \Art_p(d) \quad\text{when \(p\) articulates \(d\),}
+\]
+\[
+  \Real_p(d) \quad\text{when \(p\) realizes \(d\).}
+\]
+The presentation laws require:
+
+\begin{enumerate}[label=(P\arabic*)]
+  \item articulation is closed under contrary:
+        \(\Art_p(d)\Rightarrow\Art_p(\negd d)\);
+  \item realization implies articulation:
+        \(\Real_p(d)\Rightarrow\Art_p(d)\);
+  \item realization is exclusive:
+        \(\Real_p(d)\Rightarrow\neg\Real_p(\negd d)\);
+  \item each presentation has a fresh trace not articulated there;
+  \item if \(q\) articulates \(\Trace(p)\), it articulates everything that
+        \(p\) articulates; and
+  \item each presentation offers an articulated but unresolved opposition.
+\end{enumerate}
+
+Resolution is not a further primitive:
+\[
+  \Res_p(d)\;:\!\!\Longleftrightarrow\;
+  \Real_p(d)\lor\Real_p(\negd d).
+\]
+Because contrary determinations share an opposition,
+\(\Res_p(d)\) and \(\Res_p(\negd d)\) are equivalent in effect.
+
+\begin{formalresult}[Resolution orients exactly one pole]
+If \(\Res_p(d)\), then exactly one of \(\Real_p(d)\) and
+\(\Real_p(\negd d)\) holds.
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+Resolution supplies one of the two realization witnesses. Realization
+exclusivity rules out the other. In the second case, involutivity converts
+exclusivity at \(\negd d\) into exclusion of \(d\). This is
+\lean{PresentationLayer.resolution_orients}.
+\end{proof}
+
+The result is local and typed. It does not assert a global law of excluded
+middle for arbitrary propositions. It says that when a particular
+opposition is resolved in a presentation, the presentation realizes one and
+only one of its poles.
+
+\subsection{Four status notions}
+
+The formal vocabulary distinguishes:
+\begin{align*}
+  \Lat_p(d) &:\!\!\Longleftrightarrow \neg\Real_p(d),\\
+  \Exc_p(d) &:\!\!\Longleftrightarrow \Real_p(\negd d),\\
+  \Opn_p(d) &:\!\!\Longleftrightarrow
+     \Art_p(d)\land\neg\Res_p(d),\\
+  \Und_p(d) &:\!\!\Longleftrightarrow \neg\Art_p(d).
+\end{align*}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{0.18\linewidth}p{0.23\linewidth}p{0.23\linewidth}p{0.25\linewidth}@{}}
+\toprule
+Status & Articulated? & Realized? & Reading \\
+\midrule
+Realized & yes & \(d\) is realized & effective determination \\
+Excluded & yes & \(\negd d\) is realized & latent through realized contrary \\
+Open & yes & neither pole is realized & drawn but unsettled \\
+Undrawn & no & \(d\) cannot be realized & not articulated there \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Excluded, open, and undrawn determinations are all latent, as proved by
+\lean{excluded_latent}, \lean{open_latent}, and \lean{undrawn_latent}. They are
+not treated as interchangeable. In particular, openness is not ignorance about
+which pole is secretly realized; it is the non-resolution of an articulated
+opposition.
+
+Nor does the development prove that these labels form a constructively
+exhaustive partition of every determination at every presentation. Its
+positive claim is more precise: along a rooted actual history there are
+simultaneous witnesses of realized, excluded, open, and undrawn content.
+
+\subsection{Offer and trace}
+
+Each presentation carries an \emph{offer}, an opposition with some articulated
+pole for which neither pole is realized. Hence every presentation contains
+open content. Each presentation also carries a \emph{trace} that is not
+articulated at that presentation. Hence every presentation contains undrawn
+content.
+
+\begin{formalresult}[Non-exhaustion at presentation strength]
+Every presentation has an open determination and an undrawn determination.
+Consequently, the thesis that every articulated determination is resolved is
+inconsistent with the presentation laws.
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+The open witness is extracted from \lean{offer_open}; the undrawn witness is
+\(\Trace(p)\) by \lean{trace_fresh}. If every articulated determination were
+resolved, the offered witness would be both open and resolved. See
+\lean{openNonExhaustive_of_offer},
+\lean{articulativeNonExhaustive}, and
+\lean{fullResolution_inconsistent_of_offer}.
+\end{proof}
+
+This is the first sense in which actuality does not exhaust latency. It is
+structural, not merely temporal: even before a history is selected, every
+admissible presentation contains an unresolved articulation and an undrawn
+trace.
+
+\section{Continuation and the archive}
+
+\subsection{What a continuation does}
+
+A continuation \(p\xrightarrow{d}q\), formalized by
+\lean{PresentationLayer.Continues}, settles target \(d\) and constrains how
+\(q\) may differ from \(p\). Its clauses say:
+
+\begin{enumerate}[label=(C\arabic*)]
+  \item \(\Real_q(d)\);
+  \item away from \(d\)'s opposition, previously articulated realization
+        status is preserved;
+  \item prior articulation persists from \(p\) to \(q\);
+  \item \(q\) realizes the exact determination \(\Trace(p)\);
+  \item genuinely new articulation lies at the target or trace opposition;
+  \item away from the target, a newly realized determination is exactly
+        \(\Trace(p)\);
+  \item \(\Seed(q)=d\); and
+  \item \(\Prom(q)=\mathsf{true}\) iff \(d\) was not open at \(p\).
+\end{enumerate}
+
+The target clause makes the act effective. The off-target clauses express
+locality: an act cannot silently rewrite unrelated, already drawn content.
+The articulation clause supplies continuity. The trace clauses produce
+historical difference. Seed-writing makes the result of an act available to
+the next act. Cadence records whether the next act should promote open content
+or turn settled content.
+
+Several apparently stronger properties are derived. Resolution persists
+through a continuation; a refreshed offer cannot occupy the just-settled
+opposition; and two successors from one source that settle the same target
+agree on the realization status of every determination already articulated at
+the source. These are \lean{Continues.resolution},
+\lean{Continues.offer_avoid}, and \lean{Continues.agree_on_drawn}.
+
+\subsection{A strict archive}
+
+Define
+\[
+  p\prec q
+  \quad:\!\!\Longleftrightarrow\quad
+  \bigl(\forall e,\ \Art_p(e)\Rightarrow\Art_q(e)\bigr)
+  \land \Art_q(\Trace(p)).
+\]
+This is \lean{Archive.Precedes}. The first conjunct says that the archive of
+articulation is monotone. The second says that \(q\) contains the trace that was
+fresh at \(p\).
+
+\begin{formalresult}[Archive advance and finite no-return]
+The relation \(\prec\) is irreflexive and transitive. Every active transition
+advances it. Therefore no non-empty finite chain of active transitions returns
+to its source presentation.
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+Irreflexivity follows because \(\Trace(p)\) is not articulated at \(p\).
+Transitivity follows from preservation of articulation. Every active edge
+inherits the continuation's articulation and trace-carriage clauses, hence
+advances \(\prec\). A positive cycle would imply \(p\prec p\), contradicting
+irreflexivity. These are \lean{Archive.precedes_irrefl},
+\lean{Archive.precedes_trans}, \lean{Archive.active_precedes}, and
+\lean{Archive.no_cycle}.
+\end{proof}
+
+The proof reveals the price of irreversibility. The arrow is not obtained from
+a symmetric state space alone. It is grounded in a principle of historical
+individuation: each source has content fresh to it, the successor carries that
+content, and articulation is not deleted. This is a substantive premise, not
+a theorem of binary opposition.
+
+\subsection{An internally marked past}
+
+Archive precedence is initially a relation used by the theorist to compare two
+presentations. The trace-encoding law permits the same order to be recovered
+from what a later presentation articulates. Define
+\[
+  \mathsf{InPast}(q,p)
+  \quad:\!\!\Longleftrightarrow\quad
+  \Art_q(\Trace(p)).
+\]
+In words, \(p\) is in the past marked at \(q\) when \(q\) draws \(p\)'s trace.
+Trace encoding says that such a marker is complete enough to carry every
+articulation of \(p\), not merely a bare name. It does not encode \(p\)'s
+realization profile, seed, offer, cadence, or full state.
+
+\begin{formalresult}[Internal past equals archive precedence]
+For all presentations \(p,q\),
+\[
+  \mathsf{InPast}(q,p)\quad\Longleftrightarrow\quad p\prec q.
+\]
+Consequently, \(\mathsf{InPast}\), read with the later presentation first, is
+irreflexive, transitive, and asymmetric.
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+From left to right, trace encoding supplies the monotonic-articulation conjunct
+of \(p\prec q\), while the definition of \(\mathsf{InPast}\) supplies its trace
+conjunct. The reverse implication is immediate from precedence. Strict-order
+properties transfer from the archive, with trace freshness also proving
+irreflexivity directly. See \lean{Succession.inPast_iff_precedes},
+\lean{Succession.inPast_irrefl}, \lean{Succession.inPast_trans}, and
+\lean{Succession.inPast_asymm}.
+\end{proof}
+
+Three strengths must be distinguished. \(\mathsf{InPast}(q,p)\) requires only
+articulation of \(\Trace(p)\). \lean{ObserverLayer.Registers q p} requires the
+trace opposition to be resolved, and
+\lean{ObserverLayer.EffectivelyRegisters q p} requires realization of the exact
+trace pole. An immediate successor effectively registers its source, and a
+later endpoint on a positive chain registers the chain source; arbitrary marked
+past membership alone implies neither stronger condition.
+
+An active edge \(p\xrightarrow{d}q\) preserves every past marker already drawn
+at \(p\) and adds \(p\) itself to \(q\)'s past, while \(p\) is not in its own
+past. The theorem does not say that \(p\) is the only newly added past member.
+Along a positive chain from \(p\) to \(q\), \(q\) resolves \(p\)'s trace,
+inherits the past marked at \(p\), and still has an open offer
+(\lean{Succession.past_settled_future_open}).
+
+The development calls the following package \emph{lived succession}. If a
+determination \(o\) is realized at \(p\), and an act targets an opposition other
+than \(o\)'s, then \(o\) remains realized at \(q\). At \(q\), the earlier
+marked past is intact, \(p\) is newly included, \(q\) is not in its own
+past, \(p\)'s trace is resolved, and an opposition remains open:
+\[
+\begin{split}
+  \Real_q(o)\;&\land
+  \bigl(\forall r,\ \mathsf{InPast}(p,r)\Rightarrow
+                       \mathsf{InPast}(q,r)\bigr)\\
+  &\land\mathsf{InPast}(q,p)
+  \land\neg\mathsf{InPast}(q,q)
+  \land\Res_q(\Trace(p))
+  \land\exists f\,\Opn_q(f).
+\end{split}
+\]
+These are \lean{Succession.observer_persists} and
+\lean{Succession.lived_succession}. Here \emph{observer} means only an
+effective determination persisting off target; no appearance relation or
+phenomenology is used.
+
+The result adds a minimal registered-past/open-content contrast. Past marking is
+strict, the successor is not in its own past, and open content remains at it.
+No formal present predicate or future presentation is supplied. The direction
+is derived given trace freshness, articulation-complete trace encoding, articulation
+preservation, and trace carriage. It is not derived from temporally neutral
+opposition, and the partial order is not proved linear.
+
+\subsection{Recurrence without return}
+
+Suppose \(p\xrightarrow{\negd d}q\xrightarrow{d}r\) are possible acts and
+\(\Real_p(d)\). Then the two acts restore the realization status, at \(r\), of
+every determination articulated at \(p\):
+\[
+  \forall e,\quad
+  \Art_p(e)\Rightarrow
+  \bigl(\Real_p(e)\leftrightarrow\Real_r(e)\bigr).
+\]
+At the same time, \(p\prec r\). This conjunction is
+\lean{Archive.recurrence_without_return}.
+
+The recurrence is deliberately restricted. It is status-equivalence on the
+starting presentation's drawn content, not equality of presentations and not
+even unrestricted agreement on all determinations. The trace makes the later
+presentation historically richer. A pattern can recur without the event
+being numerically the same event.
+
+\section{Possibility, plenitude, and excess over selection}
+
+\subsection{Generative layers}
+
+A generative layer \(G\) supplies a ternary relation
+\[
+  G.\Active(p,q,d),
+\]
+and requires every active triple to satisfy the continuation laws. It is
+\emph{productive} when every presentation has some active successor:
+\[
+  \forall p\ \exists q,d,\quad G.\Active(p,q,d).
+\]
+This is one-step seriality. By itself it neither constructs an infinite
+history nor selects a coherent successor at every stage.
+
+Presentation structure does not imply productivity. The development defines
+an inert generative layer with no active transitions. This counterexample,
+\lean{Possibility.productivity_is_not_presentation_level}, motivates an
+explicit generative premise.
+
+\subsection{The strength of plenitude}
+
+The optional plenitude capability combines \lean{Possibility.Rich} and
+\lean{Possibility.Maximal}.
+
+Richness provides:
+\begin{enumerate}[label=(R\arabic*)]
+  \item a continuation settling every open determination; and
+  \item a continuation turning the seed at every presentation.
+\end{enumerate}
+
+Let \(\mathsf{Extends}(G,G')\) mean that every \(G\)-active transition is
+\(G'\)-active. Maximality says that if \(G'\) extends \(G\), then \(G\) also
+extends \(G'\). Since every generative layer is contained in the full
+continuation relation, the theorem
+\lean{Possibility.maximal_iff_extends_full} shows that maximality is
+extensionally fullness:
+\[
+  G\text{ is maximal}
+  \quad\Longleftrightarrow\quad
+  \mathsf{full}\subseteq G.
+\]
+
+\begin{qualification}
+Plenitude is therefore a strong name for a strong postulate. It does not
+follow from opposition or presentation, and it is not merely the absence of a
+larger chosen possibility relation. It makes every lawful continuation active.
+\end{qualification}
+
+Rich seed-turn continuations transferred by maximality yield productivity
+(\lean{Possibility.productive_of_plenitude}). The proof is local: for any
+source, turn its seed.
+
+\subsection{Why possibility exceeds every selector}
+
+A selector chooses one determination at each presentation and opposition:
+\[
+  S(p,o)\in P(o).
+\]
+Its lifted choice on a determination depends only on that determination's
+opposition. Thus
+\[
+  S_p(d)=S_p(\negd d).
+\]
+A selector \emph{respects} a generative layer when every active target agrees
+with its source selection.
+
+\begin{formalresult}[Plenitude excludes universal selection]
+If the presentation layer is rich, \(G\) is maximal, and at least one
+presentation is supplied, then no selector is respected by every
+\(G\)-active transition.
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+At the supplied presentation, choose a pole \(d\) at the open offered opposition.
+Openness is symmetric across the two poles. Richness supplies one continuation
+settling \(d\) and another settling \(\negd d\); maximality transfers both into
+\(G\). If one selector respected both, it would have to choose both \(d\) and
+\(\negd d\) at the same presentation and opposition. Coherence says those
+selector queries are equal, while fixed-point freedom says
+\(d\neq\negd d\). See \lean{Possibility.plenitude_excludes_selection}.
+\end{proof}
+
+This is modal excess, not contradiction. A rooted system supplies the needed
+presentation witness. The two poles occur as targets of
+alternative continuations from one source. They are not co-realized in one
+presentation. The possible outruns any one orientation because possibility
+branches across contrary lawful acts.
+
+\section{Focus and determinate actuality}
+
+\subsection{From a selector to a focus}
+
+A \lean{Focus} contains a total selector with one constraint: at the seed's
+opposition, it selects the seed's contrary. A seeded global polarisation is one
+way to build such a focus, but the dynamic core does not require the selector
+to be uniform across presentations.
+
+The cadence bit chooses the opposition under consideration:
+\[
+  \mathsf{focusOpp}(p)=
+  \begin{cases}
+    \Offer(p), & \Prom(p)=\mathsf{true},\\
+    \opp(\Seed(p)), & \Prom(p)=\mathsf{false}.
+  \end{cases}
+\]
+The target index is the focus's selection at this opposition:
+\[
+  \Index_\Phi(p)=\Phi.\mathsf{select}
+    \bigl(p,\mathsf{focusOpp}(p)\bigr).
+\]
+Consequently, in turn cadence
+\[
+  \Index_\Phi(p)=\negd{\Seed(p)},
+\]
+while in promotion cadence its opposition is the open offer.
+
+Given a possible layer \(G\), actuality is the focused subrelation
+\[
+  (\Phi.\mathsf{actual}(G)).\Active(p,q,d)
+  \quad:\!\!\Longleftrightarrow\quad
+  G.\Active(p,q,d)\land d=\Index_\Phi(p).
+\]
+Actuality does not abolish modal alternatives by declaring them incoherent.
+It restricts a broader relation by a state-relative orientation.
+
+\subsection{What determinacy amounts to}
+
+Actuality respects its focus by construction
+(\lean{Focus.actual_respected}). If two actual edges leave the same source,
+their targets are equal. Moreover, their successors agree on the realization
+status of everything articulated at the source.
+
+\begin{formalresult}[Limited actual determinacy]
+For actual edges \(p\xrightarrow{d}q\) and
+\(p\xrightarrow{d'}q'\),
+\[
+  d=d'
+\]
+and
+\[
+  \forall e,\quad \Art_p(e)\Rightarrow
+  \bigl(\Real_q(e)\leftrightarrow\Real_{q'}(e)\bigr).
+\]
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+Both active targets equal the single index \(\Index_\Phi(p)\). With the targets
+identified, continuation agreement on previously drawn content applies. See
+\lean{Focus.actual_index_unique},
+\lean{Focus.actual_target_determinate}, and the bundled theorem
+\lean{LatentActualSystem.actual_determinate}.
+\end{proof}
+
+The theorem does not prove \(q=q'\). New open articulations and other
+presentation structure may differ within the locality constraints. Actuality
+is target-determinate without being a unique-future transition system.
+
+Under plenitude the chosen target always has a lawful possible continuation:
+when promoting, selection preserves openness at the offer; when turning,
+richness supplies the contrary seed continuation. Thus focused actuality is
+productive (\lean{Focus.actual_productive}). This dependence matters.
+Selection alone chooses a target but does not make a matching successor exist.
+
+\subsection{Cadence}
+
+If an act settles open content, the successor enters turn cadence. If an act
+turns a realized contrary, the successor enters promotion cadence. Along a
+history whose seed is effective at turn positions, every actual edge flips the
+Boolean cadence:
+\[
+  \Prom(q)=\mathsf{not}(\Prom(p)).
+\]
+
+For a finite actual chain of length \(n\),
+\[
+  \Prom(q)=\After(n,\Prom(p)),
+\]
+where \(\After\) negates the bit once per act. Hence even-length runs restore
+the initial cadence and odd-length runs reverse it. These results are
+\lean{Focus.actual_chain_cadence} and the system-level theorems
+\lean{actual_chain_cadence_even} and \lean{actual_chain_cadence_odd}.
+
+The Boolean is a minimal control structure, not yet a phenomenology of time.
+Its philosophical use is to make a structural alternation exact: openness is
+promoted, settled determination is turned, and the cycle repeats at the level
+of regime.
+
+\subsection{The swirl}
+
+\begin{formalresult}[Promotion, reversal, and archive advance]
+Suppose
+\[
+  p\xrightarrow{d}_{\mathrm{actual}}q
+  \xrightarrow{e}_{\mathrm{actual}}r
+\]
+and \(p\) is in promotion cadence. Then
+\[
+  e=\negd d
+  \qquad\text{and}\qquad
+  p\prec r.
+\]
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+The first edge selects a pole of the open offer. Continuation cadence therefore
+puts \(q\) in turn mode and writes \(\Seed(q)=d\). Focus at a turn selects
+\(\negd{\Seed(q)}=\negd d\), so the second target is the contrary of the first.
+Each active edge advances the archive, and transitivity gives \(p\prec r\).
+See \lean{LatentActualSystem.actual_promote_then_reverse}; the parity-indexed
+run version is \lean{LatentActualSystem.Rooted.actual_chain_swirl}.
+\end{proof}
+
+The theorem deserves both emphasis and restraint. It proves an actual
+one-step reversal after every promotion. It does not prove that one opposition
+oscillates forever: after the turn, the next promotion concerns the refreshed
+offer, which is away from the settled seed opposition. Nor does the theorem by
+itself prove full status recurrence. The stronger
+\lean{recurrence_without_return} result belongs to a suitable two-edge
+\emph{possible} sequence and is restricted to previously articulated content.
+
+\section{Rooted history and permanent latency}
+
+\subsection{One effective seed}
+
+A rooted system chooses an initial presentation \(p_0\) and assumes
+\[
+  \Real_{p_0}(\Seed(p_0)).
+\]
+Every active successor realizes its target and writes that target as its seed.
+The initial fact therefore propagates along every finite actual chain from the
+root:
+\[
+  \mathsf{Reachable}(p)\Rightarrow\Real_p(\Seed(p)).
+\]
+This is \lean{LatentActualSystem.reachable_seed_realised}.
+
+The rooted design is premise-reducing. The system does not assume that every
+presentation, including unreachable ones, realizes its seed. It assumes one
+effective root and derives the invariant only where actual history reaches.
+
+\subsection{The strongest coexistence result}
+
+\begin{formalresult}[Permanent latency on rooted actual history]
+At every reachable presentation \(p\), there exist determinations witnessing:
+\[
+  \exists d\,\Real_p(d),\qquad
+  \exists e\,\Exc_p(e),\qquad
+  \exists f\,\Opn_p(f),\qquad
+  \exists g\,\Und_p(g).
+\]
+\end{formalresult}
+
+\begin{proof}[Proof sketch]
+The realized witness is \(\Seed(p)\), whose effectiveness propagates from the
+root. Its contrary is excluded. The offered opposition supplies an open
+witness. The fresh trace supplies an undrawn witness. This is exactly
+\lean{LatentActualSystem.latency_is_permanent}.
+\end{proof}
+
+The conclusion is not that actuality and possibility are vague mixtures.
+Realization remains exclusive and actual targets remain determinate. Rather,
+determinacy is local: some content is effective, while contrary, unresolved,
+and unarticulated content persists around it. Actuality is bounded without
+being deficient. It is a determination within a field that is not totally
+resolved.
+
+\subsection{The void and the limit of the anti-nullity argument}
+
+The development also constructs a \lean{Void.layer}: a coherent presentation
+layer with an open offer and a fresh trace but no realized determination at
+all. It proves
+\[
+  \exists F,P,p,\quad \forall d,\ \neg\Real_p(d).
+\]
+Thus absolute nullity is compatible with presentation structure. This is
+\lean{nullity_failure_not_derivable}.
+
+The countermodel blocks an inflated reading of the rooted theorem. The account
+does not derive something from nothing. It shows that once one seed is
+effective, the continuation laws preserve non-nullity along its history while
+never exhausting latency. The origin of effectiveness remains a premise.
+
+\section{The concrete Stage model}
+
+Abstract implication is not enough to show that all the assumptions can hold
+together. The \lean{Stage} namespace supplies a concrete model.
+
+Its opposition indices have three forms:
+\[
+  \mathsf{base},\qquad \mathsf{opp}(k),\qquad \mathsf{tr}(m),
+\]
+with Boolean poles. A stage records a base pole, a partial map of settled
+numbered oppositions, a clock, an independent history counter, its seed, a
+proof that the seed is effective, and the cadence bit. The current numbered
+opposition at the clock is the open offer. The current history index is the
+fresh trace.
+
+The continuation \(\mathsf{cont}(s,k,a)\) settles pole \(a\) at numbered
+opposition \(k\), increments the history, advances the clock far enough to
+refresh the offer, writes the new seed, and computes the next cadence from
+whether the target was already resolved. The proof
+\lean{Stage.cont_continues} verifies every locality, preservation, trace,
+seed, and cadence clause.
+
+The model supplies richness, the full generative layer, a seeded focus,
+plenitude, and a rooted initial stage. It proves:
+
+\begin{itemize}
+  \item possible and actual productivity;
+  \item incompatibility of plenitudinous possibility with one respected
+        selector;
+  \item an initial actual seed turn;
+  \item a following actual promotion of a genuinely different opposition;
+  \item exact trace locality for new articulation and off-target realization;
+  \item a concrete witness in which an off-target base determination persists
+        while the predecessor enters the successor's non-reflexive past; and
+  \item a possible two-step status recurrence that still advances the archive.
+\end{itemize}
+
+The separate history counter is important. Settling a distant numbered
+opposition does not silently make a block of unrelated trace tokens effective.
+Historical novelty is carried one predecessor at a time.
+
+The Stage model is a satisfiability witness, not an empirical cosmology. Its
+natural numbers and Booleans show that the abstract clauses are jointly
+inhabited and computationally manageable. They do not establish that physical
+or lived reality is discrete, binary, or clocked in this way.
+
+\section{Metaphysical interpretation}
+
+\subsection{A process ontology with local determination}
+
+The formal picture is processual in a precise sense: presentations are ordered
+by acts that preserve articulation, settle a target, and generate an
+irreducible historical trace. A presentation is not merely a timeless set of
+truths, because its place in the archive depends on what predecessor trace it
+carries. Yet the process is not flux without identity. Off-target status
+preservation and monotone articulation provide continuity.
+
+This combination resembles a recurring aspiration of process metaphysics:
+becoming should produce determinate outcomes without reducing novelty to the
+rearrangement of a closed inventory. Whitehead's insistence that actual
+entities are acts of becoming rather than inert substances is a relevant
+comparison \cite{Whitehead1978}. The present formalization is much thinner. It
+does not model prehension, causal efficacy, or a theory of relations. Its
+contribution is the smaller structural claim that local settlement, preserved
+content, and fresh historical difference can coexist consistently.
+
+\subsection{History marked within presentations}
+
+The succession layer strengthens the archive's metaphysical role. Without
+trace encoding, a theorist can prove that \(p\prec q\), but the occurrence of
+\(\Trace(p)\) within \(q\) need not by itself entail all of \(p\)'s drawn
+content. With complete encoding, the trace functions as an
+articulation-complete marker: articulating it is equivalent to standing later
+in the archive. Historical order is therefore marked in the articulation
+profiles of later presentations, rather than available only to a metalanguage
+comparing states. This is extensional marking, not a decoding operation or
+knowledge predicate.
+
+The theorem named \lean{lived_succession} captures three structural contrasts.
+There is preservation, because an untouched effective determination and the
+previously marked past persist. There is non-coincidence, because the
+successor includes its source but not itself in its marked past. There is
+continuing openness, because an opposition remains articulated and unresolved.
+This is a useful minimal pattern of realized content amid marked history and
+unresolved content; it is not a formal present or a guaranteed future event.
+
+It is not yet lived time in a phenomenological sense. The effective
+determination called an observer has no perspective or experience, the strict
+past need not be linearly ordered, and the model has no duration, anticipation,
+or affect. The result is better understood as a formal precondition for lived
+succession: a presentation-relative past marker plus asymmetric advance,
+off-target persistence, and openness. A future account of strands could add
+the linearity appropriate to a single history without imposing total order on
+the whole archive.
+
+\subsection{Latency is stratified, not a second realm}
+
+Latency here is indexed to a presentation. There is no separate warehouse of
+possible objects. A determination is latent at \(p\) exactly when it is not
+realized there, but the reason for non-realization may differ:
+
+\begin{itemize}
+  \item its contrary is effective;
+  \item its opposition is articulated and still open; or
+  \item it is not drawn into the presentation.
+\end{itemize}
+
+This taxonomy prevents two reductions. Latency is not simply exclusion, since
+open and undrawn content need no realized contrary. Nor is it simply
+indeterminacy, since excluded content is determined against. The formalism
+therefore supports a layered notion of non-actuality without reifying all
+possibilities as already actual elsewhere.
+
+The account remains extensional: it does not yet distinguish powers,
+dispositions, tendencies, or degrees of readiness within the broad negative
+predicate \(\Lat_p(d)\). A richer metaphysics of potentiality would need more
+structure than non-realization and lawful continuation.
+
+\subsection{Possibility as lawful transition}
+
+Possibility is not interpreted by a Kripke frame of complete worlds. It is the
+availability of lawful successor acts from a presentation. This makes
+possibility local and directional. Under plenitude, both poles of an open
+opposition can head alternative continuations, so no single selection
+represents all possible acts.
+
+The result offers a precise reading of modal excess:
+\[
+  \text{the possible is not one unactualized total description;}
+\]
+\[
+  \text{it is a branching relation that outruns each single orientation.}
+\]
+Actuality, by contrast, is not the elimination of the other branches from the
+possible relation. It is the focused subrelation. This preserves a clean
+distinction between modal breadth and actual determination.
+
+The strength of plenitude limits the interpretation. Because maximality is
+extensionally fullness, the theorem characterizes the consequences of a
+maximally permissive lawful modality. A weaker modal metaphysics could retain
+focus, archive, and rooted latency while losing the universal selector-conflict
+result or productivity.
+
+\subsection{Repetition with difference}
+
+The distinction between recurrence and return has affinities with philosophical
+accounts that oppose qualitative repetition to the reinstatement of an
+identical total state. Bergson's contrast between spatialized succession and
+duration \cite{Bergson1911}, and Deleuze's account of repetition as productive
+of difference \cite{Deleuze1994}, provide useful points of comparison. No claim
+of textual equivalence is intended.
+
+The formal contribution is exact:
+
+\begin{enumerate}
+  \item a possible two-act reversal can restore old articulated realization
+        status;
+  \item actual promotion is followed by contrary realization;
+  \item in either relevant two-edge case, fresh trace carriage makes the later
+        presentation strictly later in the archive.
+\end{enumerate}
+
+Thus recurrence is indexed to a chosen observational profile
+(\lean{StatusEqOn}), while return would be equality of presentations. The former
+does not imply the latter. The archive encodes a difference that survives
+qualitative restoration.
+
+\subsection{Individuation and the seed}
+
+The seed is the target written by an act into its successor. It is both a
+record of what has just become effective and the pole available for a future
+turn. In this narrow sense, the result of one individuation becomes material
+for the next. This invites comparison with Simondon's emphasis on metastability
+and the retention of unresolved potentials through individuation
+\cite{Simondon2020}.
+
+Again, the comparison marks a structural affinity, not a formalization of
+Simondon. The present seed has no energetic magnitude, incompatibility
+relation, or transductive domain. What is proved is simpler: settlement writes
+a state-relative handle that focus can reverse, while a fresh offer keeps
+another opposition open.
+
+\subsection{Internal observation, minimally construed}
+
+An optional observer layer relates a presentation, an observer determination,
+and an observed determination. If something appears to an observer at a
+presentation, both observer and observed determinations are realized there.
+Consequently, contrary contents cannot both appear to the same observer there,
+and open content does not appear as realized.
+
+This gives a minimal immanence condition: observation is internal to the
+presentation rather than a view from outside the system. It does not yet model
+perspective, misrepresentation, attention, consciousness, embodiment, or
+phenomenal character. The dynamic core does not depend on the observer layer.
+
+The succession namespace uses \emph{observer} in a still thinner sense: any
+realized determination whose opposition an act does not target. Its persistence
+is derived from off-target preservation and does not require
+\lean{ObserverLayer} or an appearance witness. The two notions should not be
+conflated: one constrains appearance, while the other supplies a persisting
+effective marker through which the structural succession package can be
+stated.
+
+\section{Objections, replies, and limits}
+
+\begin{enumerate}[label=\textbf{O\arabic*.}, leftmargin=*, align=left]
+  \item \emph{The conclusions are stipulated in the premises.}
+
+  Some are. Open offers, fresh traces, trace carriage, locality, and cadence
+  are structural assumptions. The reply is not that Lean makes them
+  self-evident. It is that the formalization turns the complaint into a
+  dependency audit: one can see exactly which conclusions require them.
+  Several burdens are nevertheless reduced. Involution, resolution
+  persistence, offer--seed freshness, refreshed-offer avoidance, cadence
+  parity, and no-cycle are theorems rather than constructor fields.
+
+  \item \emph{Binary opposition is metaphysically reductive.}
+
+  The field is a local schema for determinables represented by contrary poles,
+  not a claim that every property or relation in reality is binary. Multi-pole,
+  continuous, or non-oppositional determinables would require another field
+  structure. The present theorem states what follows in the binary case.
+
+  \item \emph{Contrary determination has been confused with logical negation.}
+
+  The types prevent this. \(\negd d\) is a pole exchange within
+  \(\opp(d)\). Propositional negation occurs separately in statements such as
+  \(\neg\Real_p(d)\). Ontic contrariety and logical denial are related by
+  realization exclusivity, not identified.
+
+  \item \emph{Latency is merely a negative predicate.}
+
+  At the broadest level, yes: \(\Lat_p(d)\) is non-realization. But the theory
+  refines it into exclusion, openness, and undrawnness with different positive
+  structural conditions. What it does not yet supply is an intensional theory
+  of powers or propensities. That is a genuine extension point.
+
+  \item \emph{Plenitude is too strong.}
+
+  Maximality is extensionally the full lawful continuation relation, so the
+  objection is well founded against any attempt to present plenitude as weak.
+  The response is modularity. Plenitude is optional and used for productivity
+  and modal excess over selection. No-return, conditional swirl, determinacy,
+  and much of the archive theory do not require it.
+
+  \item \emph{Focus makes determinism trivial.}
+
+  Focus does fix the target by definition. The non-trivial content is what
+  follows when this filter interacts with openness, seed-writing, continuation
+  locality, and cadence. Even then, determinacy is limited: the theory proves a
+  unique target and agreement on old drawn status, not a unique successor
+  presentation.
+
+  \item \emph{The archive simply stipulates the arrow of time.}
+
+  The underlying ingredients -- fresh trace, articulation-complete trace encoding,
+  carriage, and monotone articulation -- are indeed
+  historical-individuation premises. The strict order and its internal
+  marking are derived from them. The theory therefore explains no-return
+  by a precise record principle; it does not derive an arrow from temporally
+neutral laws.
+
+  \item \emph{An internally marked past is already memory or knowledge.}
+
+  It is not. The equivalence between \(\mathsf{InPast}(q,p)\) and \(p\prec q\)
+  is extensional: \(q\)'s articulation profile contains an
+  articulation-complete trace marker. There is no decoding function,
+  awareness predicate, or proof that an observer experiences or recalls the
+  order. Nor does mere past membership imply that every marked trace is
+  resolved.
+
+  \item \emph{The non-nullity argument is circular.}
+
+  Rooted history assumes one realized seed. The void countermodel proves that
+  this assumption cannot be removed at presentation strength. The valid claim
+  is persistence of actuality from an effective root, not creation of
+  actuality from absolute nullity.
+
+  \item \emph{A Boolean cadence is not lived time.}
+
+  Correct. It is the smallest automaton expressing alternation of promotion and
+  turn. The separate \lean{lived_succession} theorem adds internal retention,
+  asymmetric advance, observer persistence off target, and openness ahead.
+  Despite its name, it does not formalize phenomenal duration, variable tempo,
+  anticipation, affect, or embodied temporality. Space also remains
+  outstanding.
+
+  \item \emph{The swirl overstates oscillation.}
+
+  Read narrowly, it does not. It proves that every promotion has one immediately
+  following contrary act, with archive advance. It does not prove endless
+  alternation on one opposition. The refreshed offer normally moves the next
+  promotion elsewhere.
+
+  \item \emph{The Stage model is artificial.}
+
+  It is artificial in the proper sense of a model construction. Its role is to
+  witness joint satisfiability and catch inconsistent axiom packages, not to
+  supply empirical evidence or a unique intended interpretation.
+
+  \item \emph{The observer theory does not explain experience.}
+
+  It does not. The optional appearance layer proves internal co-realization and
+  some exclusivity consequences. The succession theorem separately proves
+  off-target persistence for a realized determination called an observer.
+  Neither supplies consciousness, error, salience, or phenomenal character.
+\end{enumerate}
+
+\section{Conclusion}
+
+The latent--actual formalization gives a conditional answer to a difficult
+structural question. A world of unlabelled oppositions can support locally
+oriented realization without global closure. Lawful acts can preserve what is
+drawn while making a target and a fresh trace effective. A maximally rich
+possible relation, when supplied a presentation, can exceed every single
+selector, while focus carves out a productive and target-determinate actuality.
+From one effective root, realized, excluded, open, and undrawn content coexist
+throughout reachable history. Trace encoding marks archive precedence inside
+later articulation profiles. Promotion leads to reversal, but trace carriage
+prevents return.
+
+The strongest philosophical lesson is methodological as much as ontological.
+Determinacy need not mean exhaustiveness; recurrence need not mean identity;
+and conditional metaphysical claims become clearer when their generative,
+modal, and historical premises are separately named. The void countermodel
+keeps the account honest: presentation does not make itself actual. The Stage
+model shows, conversely, that actuality, permanent latency, modal excess,
+focused selection, and archival irreversibility can inhabit one coherent
+structure.
+
+What remains is substantial. The binary schema must be generalized if it is to
+address continuous or plural determination. Productivity must be distinguished
+from completed infinite succession. The development now marks a strict past
+within presentations and proves a limited persistence package named lived
+succession, but metric or continuous time, phenomenal duration, and a formal
+future relation remain absent. So do space, causation, embodiment, and
+full-blooded observation. These are not small omissions, but the formal core
+gives future extensions a disciplined base: new premises can be added, and
+their real consequences can be proved rather than suggested.
+
+\appendix
+
+\section{Argument-to-theorem map}
+
+\small
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.33\linewidth}
+  >{\raggedright\arraybackslash}p{0.61\linewidth}@{}}
+\toprule
+Lean declaration & Role in the argument \\
+\midrule
+\endfirsthead
+\toprule
+Lean declaration & Role in the argument \\
+\midrule
+\endhead
+\lean{Field.neg_involutive} and \lean{Field.neg_free}
+  & Contrary exchange is involutive and has no fixed point. \\
+\lean{PresentationLayer.resolution_orients}
+  & A resolved opposition realizes exactly one pole. \\
+\lean{PresentationLayer.openNonExhaustive_of_offer}
+  & Every presentation contains an open determination. \\
+\lean{PresentationLayer.articulativeNonExhaustive}
+  & Every presentation contains an undrawn determination, namely its fresh
+    trace. \\
+\lean{PresentationLayer.fullResolution_inconsistent_of_offer}
+  & Universal resolution of articulated content is inconsistent with the open
+    offer. \\
+\lean{PresentationLayer.trace_encodes}
+  & Articulating a source trace carries every determination articulated at that
+    source; it is not a complete state encoding. \\
+\lean{Continues.resolution}
+  & Resolution persists through lawful continuation. \\
+\lean{Continues.newly_articulated_is_trace} and
+\lean{Continues.off_target_novel_is_trace}
+  & Transition locality confines non-target novelty to the predecessor trace. \\
+\lean{Archive.no_cycle}
+  & No non-empty finite active chain returns to its identical source. \\
+\lean{Succession.inPast_iff_precedes} and
+\lean{Succession.inPast_asymm}
+  & A presentation's past markers are exactly archive predecessors and form an
+    asymmetric relation. \\
+\lean{Succession.past_grows_strictly}
+  & Every active edge preserves earlier past markers and adds at least its
+    source. \\
+\lean{Succession.past_settled_future_open}
+  & A positive chain resolves its starting trace, preserves its starting past,
+    and ends with an open offer. \\
+\lean{Succession.observer_persists} and
+\lean{LatentActualSystem.lived_succession}
+  & Off-target realized content persists through one act, conjoined with strict
+    past growth, source-trace settlement, and continuing openness. \\
+\lean{Archive.recurrence_without_return}
+  & A two-step possible reversal restores old drawn status while the archive
+    advances. \\
+\lean{Possibility.productive_of_plenitude}
+  & Richness plus maximality gives a successor at every source. \\
+\lean{Possibility.plenitude_excludes_selection}
+  & No one selector agrees with both contrary branches made active by
+    plenitude. \\
+\lean{Focus.actual_respected}
+  & Focused actuality agrees with its selector. \\
+\lean{Focus.actual_productive}
+  & Plenitude supplies a possible continuation matching every focused index. \\
+\lean{LatentActualSystem.actual_determinate}
+  & Actual edges from one source share a target and agree on previously drawn
+    realization status. \\
+\lean{LatentActualSystem.reachable_seed_realised}
+  & One effective root seed propagates along actual reachability. \\
+\lean{LatentActualSystem.latency_is_permanent}
+  & Realized, excluded, open, and undrawn witnesses coexist at every reachable
+    stage. \\
+\lean{LatentActualSystem.actual_chain_cadence_even} and
+\lean{LatentActualSystem.actual_chain_cadence_odd}
+  & Actual cadence is determined by finite run parity. \\
+\lean{LatentActualSystem.actual_promote_then_reverse}
+  & Every promotion is followed by contrary realization and archive advance. \\
+\lean{LatentActualSystem.Rooted.actual_chain_swirl}
+  & The swirl holds at every promoting parity position in a rooted actual run. \\
+\lean{nullity_failure_not_derivable}
+  & Presentation structure alone permits absolute nullity. \\
+\lean{Stage.actual_productive}, \lean{Stage.actual_novelty},
+\lean{Stage.lived_succession_witness}, and
+\lean{Stage.oscillation_possible}
+  & The concrete model witnesses productivity, novelty, marked succession, and
+    possible recurrence without return. \\
+\bottomrule
+\end{longtable}
+\normalsize
+
+\section{Premise ledger}
+
+\begin{center}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.27\linewidth}
+  >{\raggedright\arraybackslash}p{0.31\linewidth}
+  >{\raggedright\arraybackslash}p{0.33\linewidth}@{}}
+\toprule
+Layer & Supplied structure & Principal derived consequences \\
+\midrule
+Field
+  & Pole exchange, fixed-point freedom, two-pole dichotomy
+  & Involution; equality-or-contrary within a fibre \\
+Presentation
+  & Articulation closure, realization exclusivity, open offer, fresh trace,
+    articulation-complete trace encoding
+  & Exact orientation of resolution; open and undrawn non-exhaustion; internally
+    marked archive order \\
+Continuation
+  & Target realization, preservation, trace carriage, locality, seed-writing,
+    cadence equation
+  & Resolution persistence; offer avoidance; archive advance; local agreement \\
+Plenitude
+  & Open continuations, seed turns, extensional maximality
+  & Possible and actual productivity; no universally respected selector \\
+Focus
+  & Total state-relative selection; contrary selection at seed opposition
+  & Unique actual target; promotion/turn index; actual focus-respect \\
+Root
+  & One initially realized seed
+  & Reachable seed effectiveness; turn cadence; reachable non-nullity and
+    permanent latency \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{thebibliography}{9}
+
+\bibitem{Aristotle2016}
+Aristotle.
+\newblock \emph{Metaphysics}.
+\newblock Translated by C. D. C. Reeve. Hackett Publishing, 2016.
+
+\bibitem{Bergson1911}
+Henri Bergson.
+\newblock \emph{Creative Evolution}.
+\newblock Translated by Arthur Mitchell. Henry Holt, 1911.
+
+\bibitem{Deleuze1994}
+Gilles Deleuze.
+\newblock \emph{Difference and Repetition}.
+\newblock Translated by Paul Patton. Columbia University Press, 1994.
+
+\bibitem{deMouraUllrich2021}
+Leonardo de Moura and Sebastian Ullrich.
+\newblock The Lean 4 theorem prover and programming language.
+\newblock In \emph{Automated Deduction -- CADE 28}, pages 625--635.
+Springer, 2021.
+
+\bibitem{Simondon2020}
+Gilbert Simondon.
+\newblock \emph{Individuation in Light of Notions of Form and Information}.
+\newblock Translated by Taylor Adkins. University of Minnesota Press, 2020.
+
+\bibitem{Whitehead1978}
+Alfred North Whitehead.
+\newblock \emph{Process and Reality: An Essay in Cosmology}.
+\newblock Corrected edition, edited by David Ray Griffin and Donald W.
+Sherburne. Free Press, 1978.
+
+\end{thebibliography}
+
+\end{document}

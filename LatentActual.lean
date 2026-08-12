@@ -9,6 +9,15 @@ gradient in the system core; rooted histories propagate seed effectiveness;
 observation and archive carriage are internal again; continuations state an
 explicit realised-content locality law; and cadence is proved across runs.
 
+**Structurally marked succession (section 5b).**  `trace_encodes` makes a trace
+complete for its source's articulation profile, which marks the archive order
+inside a later presentation.  The marked past is exactly what precedes the
+later presentation; it is a strict asymmetric order, it never shrinks, and each
+act adds at least its own source.  The immediate source trace is settled while
+open content remains.  Any realised determination persists through an act that
+does not work its opposition.  These are structural results, not claims about
+awareness or phenomenal time, and the past is not proved linearly ordered.
+
 **Opposition-primitive, unlabelled.**  Fibres are `Z/2`-torsors; a gradient is
 a choice of section.
 
@@ -175,6 +184,12 @@ structure PresentationLayer (F : Field.{u}) where
   realises_articulates : ∀ {p d}, realises p d → articulates p d
   realises_exclusive : ∀ {p d}, realises p d → ¬ realises p (F.neg d)
   trace_fresh : ∀ p, ¬ articulates p (trace p)
+  /-- A trace is complete for its source's articulation profile: to articulate
+  a presentation's trace is to articulate everything that presentation had
+  articulated.  This makes the archive order internally marked; it does not
+  encode the source's whole state or supply an epistemic reading operation. -/
+  trace_encodes : ∀ p q, articulates q (trace p) →
+    ∀ d, articulates p d → articulates q d
   /-- The offer is open. -/
   offer_open : ∀ p, ∃ pol, articulates p ⟨offer p, pol⟩ ∧
     ¬ (realises p ⟨offer p, pol⟩ ∨
@@ -731,6 +746,129 @@ theorem registers_asymm {p q : P.Presentation}
   fun hr => P.trace_fresh q (h.1 _ (P.resolves_articulates hr))
 
 end ObserverLayer
+
+/-! ## 5b. Lived succession
+
+The archive order was, until now, visible only from outside: `Archive.Precedes`
+relates two presentations, and nothing let a presentation recover the order of
+what it had registered.  `trace_encodes` closes that gap, and everything here
+follows from it together with trace freshness and articulative growth.
+
+What is derived: the past marked inside a presentation is a strict order, it
+never shrinks, each act adds at least its own source, the immediate source trace
+is settled, and open content remains.  The direction of succession follows from
+the stated trace assumptions rather than from a separate temporal primitive.
+
+What is deliberately not derived: that the past is *linearly* ordered.  It is a
+strict partial order and nothing here makes any two of its members comparable.
+That is the right outcome: linearity is a feature of a single strand, and
+strands are the structure the spatial question needs. -/
+
+namespace Succession
+
+variable {F : Field.{u}} (P : PresentationLayer.{u,v} F)
+
+/-- The past marked inside `q`: `q` articulates `p`'s trace. -/
+def InPast (q p : P.Presentation) : Prop := P.articulates q (P.trace p)
+
+/-- **The archive is internally marked.**  A source's trace is articulated at a
+later presentation exactly when the source precedes it. -/
+theorem inPast_iff_precedes (p q : P.Presentation) :
+    InPast P q p ↔ Archive.Precedes P p q := by
+  constructor
+  · intro h
+    exact ⟨P.trace_encodes p q h, h⟩
+  · intro h
+    exact h.2
+
+theorem inPast_irrefl (p : P.Presentation) : ¬ InPast P p p :=
+  P.trace_fresh p
+
+theorem inPast_trans {p q r : P.Presentation}
+    (h₁ : InPast P q p) (h₂ : InPast P r q) : InPast P r p := by
+  rw [inPast_iff_precedes] at h₁ h₂ ⊢
+  exact Archive.precedes_trans P h₁ h₂
+
+/-- Succession has a direction: nothing that is in your past has you in its
+past. -/
+theorem inPast_asymm {p q : P.Presentation}
+    (h : InPast P q p) : ¬ InPast P p q :=
+  fun h' => inPast_irrefl P p (inPast_trans P h h')
+
+/-- Transitively, the past of anything in your past is in your past. -/
+theorem past_of_past {p q r : P.Presentation}
+    (h : InPast P q p) (h' : InPast P p r) : InPast P q r :=
+  inPast_trans P h' h
+
+variable {G : GenerativeLayer P}
+
+/-- The past never shrinks. -/
+theorem past_monotone {p q : P.Presentation} {d : F.Determination}
+    (h : G.Active p q d) : ∀ r, InPast P p r → InPast P q r :=
+  fun _ hr => (G.active_continues h).articulation _ hr
+
+/-- Each act adds at least its own source to the marked past. -/
+theorem past_gains_source {p q : P.Presentation} {d : F.Determination}
+    (h : G.Active p q d) : InPast P q p ∧ ¬ InPast P p p :=
+  ⟨P.realises_articulates (G.active_continues h).carries, inPast_irrefl P p⟩
+
+/-- Strict growth: everything already registered stays registered, the source
+is newly registered, and no presentation registers itself. -/
+theorem past_grows_strictly {p q : P.Presentation} {d : F.Determination}
+    (h : G.Active p q d) :
+    (∀ r, InPast P p r → InPast P q r) ∧ InPast P q p ∧ ¬ InPast P p p :=
+  ⟨past_monotone P h, past_gains_source P h⟩
+
+/-- Along a positive chain, the endpoint marks the chain source as past. -/
+theorem chain_inPast : ∀ {n : Nat} {p q : P.Presentation},
+    Chain G (n + 1) p q → InPast P q p :=
+  fun h => (Archive.chain_precedes P h).2
+
+/-- **The arrow.**  The source trace of a positive chain is settled at the
+endpoint, prior past markers persist, and the endpoint retains open content. -/
+theorem past_settled_future_open
+    {n : Nat} {p q : P.Presentation} (h : Chain G (n + 1) p q) :
+    P.Resolves q (P.trace p) ∧ (∀ r, InPast P p r → InPast P q r) ∧
+      ∃ pol, P.OpenIn q ⟨P.offer q, pol⟩ := by
+  refine ⟨ObserverLayer.registers_of_chain h, ?_, ?_⟩
+  · intro r hr
+    exact (Archive.chain_precedes P h).1 _ hr
+  · obtain ⟨pol, ha, hres⟩ := P.offer_open q
+    exact ⟨pol, ha, hres⟩
+
+/-! ### Persistent realised content in succession
+
+Here `o` is any realised determination, not an `ObserverLayer` observer or an
+appearance witness.  Its one-edge persistence follows from locality whenever
+the act targets a different opposition. -/
+
+/-- Off-target realised content persists through one act. -/
+theorem observer_persists {p q : P.Presentation} {d o : F.Determination}
+    (h : G.Active p q d) (hne : ¬ F.Opposed d o) (ho : P.realises p o) :
+    P.realises q o :=
+  ((G.active_continues h).off_determination o hne
+    (P.realises_articulates ho)).mpr ho
+
+/-- **Structural lived succession.**  Off-target realised content persists;
+old past markers remain, the source is newly marked, the successor is not its
+own past, the source trace is settled, and open content remains.  The name is a
+term of art here and does not assert awareness or phenomenal duration. -/
+theorem lived_succession
+    {p q : P.Presentation} {d o : F.Determination}
+    (h : G.Active p q d) (hne : ¬ F.Opposed d o) (ho : P.realises p o) :
+    P.realises q o ∧
+    (∀ r, InPast P p r → InPast P q r) ∧
+    InPast P q p ∧
+    ¬ InPast P q q ∧
+    P.Resolves q (P.trace p) ∧
+    ∃ pol, P.OpenIn q ⟨P.offer q, pol⟩ := by
+  refine ⟨observer_persists P h hne ho, past_monotone P h, ?_, inPast_irrefl P q,
+    P.realises_resolves (G.active_continues h).carries, ?_⟩
+  · exact P.realises_articulates (G.active_continues h).carries
+  · obtain ⟨pol, ha, hres⟩ := P.offer_open q
+    exact ⟨pol, ha, hres⟩
+
+end Succession
 
 /-! ## 6. Selection via the seed -/
 
@@ -1496,6 +1634,33 @@ theorem Rooted.actual_chain_swirl
     (LatentActualSystem.Rooted.actual_chain_cadence S R hprefix).trans hparity
   exact S.actual_promote_then_reverse h₁ h₂ hp
 
+/-- **Structural lived succession, at system level.**  Across an actual edge,
+off-target realised content persists while past markers strictly grow, the
+source trace is settled, and open content remains. -/
+theorem lived_succession
+    {p q : S.presentations.Presentation} {d o : S.field.Determination}
+    (h : S.actual.Active p q d) (hne : ¬ S.field.Opposed d o)
+    (ho : S.presentations.realises p o) :
+    S.presentations.realises q o ∧
+    (∀ r, Succession.InPast S.presentations p r →
+      Succession.InPast S.presentations q r) ∧
+    Succession.InPast S.presentations q p ∧
+    ¬ Succession.InPast S.presentations q q ∧
+    S.presentations.Resolves q (S.presentations.trace p) ∧
+    ∃ pol, S.presentations.OpenIn q ⟨S.presentations.offer q, pol⟩ :=
+  Succession.lived_succession S.presentations h hne ho
+
+/-- Internally marked past is exactly generative precedence. -/
+theorem past_is_precedence (p q : S.presentations.Presentation) :
+    Succession.InPast S.presentations q p ↔
+      Archive.Precedes S.presentations p q :=
+  Succession.inPast_iff_precedes S.presentations p q
+
+theorem past_asymm {p q : S.presentations.Presentation}
+    (h : Succession.InPast S.presentations q p) :
+    ¬ Succession.InPast S.presentations p q :=
+  Succession.inPast_asymm S.presentations h
+
 end LatentActualSystem
 
 /-! ## 10. The void -/
@@ -1530,6 +1695,7 @@ abbrev layer : PresentationLayer.{0,0} field where
   realises_articulates := fun h => False.elim h
   realises_exclusive := fun h => False.elim h
   trace_fresh := fun _ h => Bool.noConfusion h
+  trace_encodes := fun _ _ h => Bool.noConfusion h
   offer_open := fun _ => ⟨true, rfl, fun h => h.elim (fun x => x) (fun x => x)⟩
 
 /-- Absolute nullity is still coherent as a layer.  What excludes it on an
@@ -1647,6 +1813,15 @@ abbrev layer : PresentationLayer.{0,0} field where
   trace_fresh := by
     intro p h
     exact absurd h (Nat.lt_irrefl p.history)
+  trace_encodes := by
+    intro p q h d hd
+    have hlt : p.history < q.history := h
+    cases d with
+    | mk o a =>
+        cases o with
+        | base => trivial
+        | opp k => trivial
+        | tr m => exact Nat.lt_trans (hd : m < p.history) hlt
   offer_open := offer_open_of
 
 /-- Settle opposition `k` on pole `a`.  Cadence becomes "was already resolved"
@@ -1686,8 +1861,11 @@ theorem cont_continues (s : St) (k : Nat) (a : Bool) :
             exact ⟨fun hx => ⟨hj, hx.2⟩, fun hx => ⟨by omega, hx.2⟩⟩
         | isFalse hj =>
             rw [if_neg hj]
-            exact ⟨fun hx => absurd hx.2 (fun hc => Option.noConfusion hc),
-                   fun hx => absurd hx.1 hj⟩
+            constructor
+            · intro hx
+              exact absurd hx.2 (by intro hc; cases hc)
+            · intro hx
+              exact absurd hx.1 hj
     | tr m =>
         have hm : m < s.history := he
         show (pol = true ∧ m < (cont s k a).history) ↔
@@ -1739,7 +1917,7 @@ theorem cont_continues (s : St) (k : Nat) (a : Bool) :
               exact Or.inl ⟨hj, hq'.2⟩
           | isFalse hj =>
               rw [if_neg hj] at hq'
-              exact False.elim (Option.noConfusion hq'.2)
+              exact absurd hq'.2 (by intro hc; cases hc)
       | tr m =>
           have hc : c = true := hq.1
           have hm : m < s.history + 1 := by
@@ -1782,8 +1960,7 @@ theorem rich : Possibility.Rich layer where
   seed_turn := by
     intro p
     refine ⟨cont p p.seedOpp (!p.seedPole), ?_⟩
-    have h := cont_continues p p.seedOpp (!p.seedPole)
-    simpa [seedOf, Field.neg] using h
+    exact cont_continues p p.seedOpp (!p.seedPole)
 
 theorem seed_realised (p : St) : layer.realises p (seedOf p) := p.seed_ok
 
@@ -1843,7 +2020,7 @@ theorem actual_turn₀ :
       (field.neg ⟨Idx.opp 0, true⟩) := by
   refine ⟨cont_continues s₀ 0 false, ?_⟩
   have h := system.focusing.index_turn s₀ s₀_turn_cadence
-  simpa [seedOf, Field.neg] using h.symm
+  exact h.symm
 
 def s₁ : St := cont s₀ 0 false
 
@@ -1904,6 +2081,20 @@ theorem first_off_target_novel_is_trace {e : field.Determination}
     (hp : ¬ layer.realises s₀ e) (hq : layer.realises s₁ e) :
     e = layer.trace s₀ :=
   (cont_continues s₀ 0 false).off_target_novel_is_trace hoff hp hq
+
+/-- The model exhibits the stated conjunction concretely: the base pole
+survives the first act, `s₀` enters `s₁`'s past, `s₁` is not in its own past,
+and `s₀`'s trace is settled at `s₁`. -/
+theorem lived_succession_witness :
+    layer.realises s₁ ⟨Idx.base, true⟩ ∧
+    Succession.InPast layer s₁ s₀ ∧
+    ¬ Succession.InPast layer s₁ s₁ ∧
+    layer.Resolves s₁ (layer.trace s₀) := by
+  have h := system.lived_succession actual_turn₀
+    (show ¬ field.Opposed (field.neg ⟨Idx.opp 0, true⟩) ⟨Idx.base, true⟩ from by
+      intro hc; exact Idx.noConfusion hc)
+    (show layer.realises s₀ ⟨Idx.base, true⟩ from rfl)
+  exact ⟨h.1, h.2.2.1, h.2.2.2.1, h.2.2.2.2.1⟩
 
 theorem seed_written : seedOf s₁ = ⟨Idx.opp 0, false⟩ := rfl
 
@@ -1981,7 +2172,7 @@ regression repaired.
 * **Void and Stage.**  Absolute nullity remains coherent at layer strength;
   the Stage model supplies both optional richness and rooted-history evidence.
 
-Still owed: space and lived succession.
+Still owed: space and phenomenal lived duration beyond the structural theorem.
 -/
 
 end LatentActual
