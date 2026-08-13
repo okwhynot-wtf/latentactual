@@ -117,6 +117,16 @@ theorem set_set_other {σ : Assignment O} {k ℓ k' : O.Kind}
     set (set σ k v) ℓ w k' = σ k' := by
   rw [set_ne _ _ _ _ hℓ, set_ne _ _ _ _ hk]
 
+theorem set_overwrite (σ : Assignment O) (k : O.Kind)
+    (v w : O.Value k) :
+    set (set σ k v) k w = set σ k w := by
+  funext k'
+  haveI := O.decEqKind
+  by_cases hk : k' = k
+  · subst hk
+    rw [set_self, set_self]
+  · rw [set_ne _ _ _ _ hk, set_ne _ _ _ _ hk, set_ne _ _ _ _ hk]
+
 /-- Dependent case split on a realised cell of `set`. -/
 theorem realised_set_cases {σ : Assignment O} {k k' : O.Kind}
     {v : O.Value k} {v' : O.Value k'}
@@ -322,6 +332,41 @@ theorem settable_empty (k : O.Kind) (v : O.Value k) :
   · intro _ hs
     cases hs
 
+/-- Overwriting a cell is replacement, not joint realisation. -/
+theorem settable_overwrite {σ : Assignment O} {k : O.Kind}
+    {v w : O.Value k} (h : C.Settable σ k w) :
+    C.Settable (Assignment.set σ k v) k w := by
+  have e := Assignment.set_overwrite σ k v w
+  intro k1 k2 v1 v2 h1 h2
+  rw [e] at h1 h2
+  exact h k1 k2 v1 v2 h1 h2
+
+/-- Three pairwise-independent settlements amalgamate.  Finite-region
+locality, from the binary theorem, not a new primitive. -/
+theorem independent_amalgamate3 {k ℓ m : O.Kind}
+    (hkl : C.Independent k ℓ)
+    (hkm : C.Independent k m)
+    (hlm : C.Independent ℓ m)
+    {σ : Assignment O}
+    {v : O.Value k} {w : O.Value ℓ} {u : O.Value m}
+    (hσk : σ k = none) (hσℓ : σ ℓ = none) (hσm : σ m = none)
+    (hk : C.Settable σ k v)
+    (hℓ : C.Settable σ ℓ w)
+    (hm : C.Settable σ m u) :
+    C.PairwiseOk
+      (Assignment.set (Assignment.set (Assignment.set σ k v) ℓ w) m u) := by
+  have hσℓ' : Assignment.set σ k v ℓ = none := by
+    rw [Assignment.set_ne _ _ _ _ hkl.1.symm]
+    exact hσℓ
+  have hσm' : Assignment.set σ k v m = none := by
+    rw [Assignment.set_ne _ _ _ _ hkm.1.symm]
+    exact hσm
+  have hℓ' : C.Settable (Assignment.set σ k v) ℓ w :=
+    (C.independent_settable_iff hkl hσk hσℓ hk).mp hℓ
+  have hm' : C.Settable (Assignment.set σ k v) m u :=
+    (C.independent_settable_iff hkm hσk hσm hk).mp hm
+  exact C.independent_amalgamate hlm hσℓ' hσm' hℓ' hm'
+
 end Coherence
 
 /-! ## 3. Configurations: admissible partial settlements
@@ -374,6 +419,43 @@ def Revises (s t : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
 def Excluded (s : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
   ∃ w, s.assign k = some w ∧ w ≠ v
 
+theorem settled_not_open {s : Config C} {k : O.Kind}
+    (h : Settled s k) : ¬ Open s k := by
+  intro ⟨_, hnone⟩
+  obtain ⟨v, hv⟩ := h
+  rw [hv] at hnone
+  cases hnone
+
+theorem settled_not_undrawn {s : Config C} {k : O.Kind}
+    (h : Settled s k) : ¬ Undrawn s k := by
+  intro hund
+  obtain ⟨v, hv⟩ := h
+  exact hund (s.realised_articulated k v hv)
+
+theorem open_not_undrawn {s : Config C} {k : O.Kind}
+    (h : Open s k) : ¬ Undrawn s k :=
+  fun hund => hund h.1
+
+/-- Every kind is undrawn, open, or settled, once articulation is
+decidable.  The three are pairwise exclusive without that hypothesis. -/
+theorem kind_status (s : Config C) (k : O.Kind)
+    [Decidable (s.articulated k)] :
+    Undrawn s k ∨ Open s k ∨ Settled s k := by
+  cases h : s.assign k with
+  | some v => exact Or.inr (Or.inr ⟨v, h⟩)
+  | none =>
+    by_cases hart : s.articulated k
+    · exact Or.inr (Or.inl ⟨hart, h⟩)
+    · exact Or.inl hart
+
+/-- Settled-against: a different value at an exclusive kind is excluded
+and incompatible.  This is synchronic; it does not freeze the cell. -/
+theorem exclusive_excludes {s : Config C} {k : O.Kind}
+    {v w : O.Value k}
+    (hE : O.Exclusive k) (hv : s.assign k = some v) (hne : v ≠ w) :
+    Excluded s k w ∧ ¬ C.compat ⟨k, v⟩ ⟨k, w⟩ :=
+  ⟨⟨v, hv, hne⟩, C.exclusive_incompat hE hne⟩
+
 /-- On a dichotomous kind, settlement orients one value and excludes the
 other.  The old `resolution_orients`, recovered as a special case. -/
 theorem dichotomous_orients {s : Config C} {k : O.Kind}
@@ -414,6 +496,25 @@ theorem settle_settles (s : Config C) (k : O.Kind) (v : O.Value k)
     (ho : Open s k) (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
     Settles s (settle s k v ho hok) k v :=
   ⟨ho, rfl, fun _ => Iff.rfl⟩
+
+def revise (s : Config C) (k : O.Kind) (v : O.Value k)
+    {w : O.Value k} (hw : s.assign k = some w) (_hne : w ≠ v)
+    (hok : C.PairwiseOk (Assignment.set s.assign k v)) : Config C where
+  articulated := s.articulated
+  assign := Assignment.set s.assign k v
+  realised_articulated := fun k' v' hv' =>
+    Assignment.realised_set_cases hv'
+      (fun eq _ => by
+        cases eq
+        exact s.realised_articulated k w hw)
+      (fun _ hs => s.realised_articulated k' v' hs)
+  ok := hok
+
+theorem revise_revises (s : Config C) (k : O.Kind) (v : O.Value k)
+    {w : O.Value k} (hw : s.assign k = some w) (hne : w ≠ v)
+    (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
+    Revises s (revise s k v hw hne hok) k v :=
+  ⟨fun _ => Iff.rfl, rfl, ⟨w, hw, hne⟩⟩
 
 def grow (s : Config C) (k : O.Kind) (_hund : Undrawn s k) : Config C where
   articulated := fun k' => s.articulated k' ∨ k' = k
@@ -552,6 +653,49 @@ theorem plenitudeAt_of_open {O : Ontology.{u,v}} {C : Coherence O}
     PlenitudeAt s k :=
   ⟨ho, fun v hok => ⟨s.settle k v ho hok, s.settle_settles k v ho hok⟩⟩
 
+/-- Unused coherence at an undrawn kind is growth. -/
+theorem possible_grow_of_undrawn {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) (hund : s.Undrawn k) :
+    ∃ t, Config.Grows s t :=
+  ⟨s.grow k hund, s.grow_grows k hund⟩
+
+/-- Unused coherence at a settled kind is revision, when the new value
+is settable.  Exclusivity does not block this: `set` replaces. -/
+theorem possible_revise_of_settled {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) {w v : O.Value k}
+    (hw : s.assign k = some w) (hne : w ≠ v)
+    (hok : C.Settable s.assign k v) :
+    ∃ t, Config.Revises s t k v :=
+  ⟨s.revise k v hw hne hok, s.revise_revises k v hw hne hok⟩
+
+/-- The one possibility relation: coherent settle, grow, or revise. -/
+inductive Possible {O : Ontology.{u,v}} {C : Coherence O} :
+    Config C → Config C → Prop
+  | of_settle {s t : Config C} {k : O.Kind} {v : O.Value k} :
+      Config.Settles s t k v → Possible s t
+  | of_grow {s t : Config C} :
+      Config.Grows s t → Possible s t
+  | of_revise {s t : Config C} {k : O.Kind} {v : O.Value k} :
+      Config.Revises s t k v → Possible s t
+
+theorem possible_of_open {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) (ho : s.Open k)
+    (v : O.Value k) (hok : C.Settable s.assign k v) :
+    Possible s (s.settle k v ho hok) :=
+  Possible.of_settle (s.settle_settles k v ho hok)
+
+theorem possible_of_undrawn {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) (hund : s.Undrawn k) :
+    Possible s (s.grow k hund) :=
+  Possible.of_grow (s.grow_grows k hund)
+
+theorem possible_of_settled {O : Ontology.{u,v}} {C : Coherence O}
+    (s : Config C) (k : O.Kind) {w v : O.Value k}
+    (hw : s.assign k = some w) (hne : w ≠ v)
+    (hok : C.Settable s.assign k v) :
+    Possible s (s.revise k v hw hne hok) :=
+  Possible.of_revise (s.revise_revises k v hw hne hok)
+
 structure Selector (O : Ontology.{u,v}) where
   choose : (k : O.Kind) → O.Value k
 
@@ -613,6 +757,40 @@ theorem restrict_agrees {O : Ontology.{u,v}}
   unfold restrict
   rw [hr]
   rfl
+
+theorem restrict_hides {O : Ontology.{u,v}}
+    (σ : Assignment O) (r : Region O) (k : O.Kind) (hr : r k = false) :
+    restrict σ r k = none := by
+  unfold restrict
+  rw [hr]
+  rfl
+
+namespace Config
+
+variable {O : Ontology.{u,v}} {C : Coherence O}
+
+def restrict (s : Config C) (r : Region O) : Config C where
+  articulated := fun k => r k = true ∧ s.articulated k
+  assign := OpenSite.restrict s.assign r
+  realised_articulated := fun k v hv => by
+    unfold OpenSite.restrict at hv
+    split at hv
+    · next htrue => exact ⟨htrue, s.realised_articulated k v hv⟩
+    · cases hv
+  ok := restrict_sub s.ok r
+
+theorem restrict_keeps {s : Config C} {r : Region O} {k : O.Kind}
+    (hr : r k = true) :
+    (restrict s r).assign k = s.assign k ∧
+      ((restrict s r).articulated k ↔ s.articulated k) :=
+  ⟨restrict_agrees s.assign r k hr, ⟨fun h => h.2, fun ha => ⟨hr, ha⟩⟩⟩
+
+theorem restrict_hides_kind {s : Config C} {r : Region O} {k : O.Kind}
+    (hr : r k = false) :
+    (restrict s r).assign k = none ∧ ¬ (restrict s r).articulated k :=
+  ⟨restrict_hides s.assign r k hr, fun h => nomatch hr.symm.trans h.1⟩
+
+end Config
 
 /-! ## 6. The void -/
 
@@ -871,6 +1049,16 @@ theorem independent_hue_lamp : coh.Independent K.hue K.lamp := by
   · intro h; cases h
   · intro _ _; exact trivial
 
+theorem independent_hue_gap : coh.Independent K.hue K.gap := by
+  constructor
+  · intro h; cases h
+  · intro _ _; exact trivial
+
+theorem independent_sw_gap : coh.Independent K.sw K.gap := by
+  constructor
+  · intro h; cases h
+  · intro _ _; exact trivial
+
 theorem not_independent_sw_lamp : ¬ coh.Independent K.sw K.lamp := by
   intro ⟨_, hall⟩
   have : compat ⟨K.sw, false⟩ ⟨K.lamp, true⟩ := hall false true
@@ -926,6 +1114,17 @@ theorem interaction_blocks_amalgamation :
         (Assignment.set (Assignment.set vacant K.sw false) K.lamp true) :=
   ⟨settable_sw_off, settable_lamp_on, sw_lamp_refuse⟩
 
+theorem hue_gap_sw_amalgamate :
+    coh.PairwiseOk
+      (Assignment.set
+        (Assignment.set (Assignment.set vacant K.hue Hue.red) K.sw true)
+        K.gap false) :=
+  coh.independent_amalgamate3
+    independent_hue_sw independent_hue_gap independent_sw_gap
+    rfl rfl rfl
+    (settable_hue Hue.red) (coh.settable_empty K.sw true)
+    (coh.settable_empty K.gap false)
+
 def seen : Region ont
   | .hue => true
   | .lamp => true
@@ -975,6 +1174,23 @@ theorem origin_not_earlier_seed : ¬ Config.Earlier origin seed :=
 
 theorem origin_remainder : origin.Remainder :=
   ⟨K.gap, origin_open K.gap⟩
+
+theorem origin_status (k : K) :
+    origin.Undrawn k ∨ origin.Open k ∨ origin.Settled k :=
+  haveI : Decidable (origin.articulated k) := isTrue trivial
+  Config.kind_status origin k
+
+theorem seed_undrawn_hue : seed.Undrawn K.hue := by
+  intro h
+  cases h
+
+theorem possible_seed_grows : Possible seed origin :=
+  Possible.of_grow seed_grows_origin
+
+theorem possible_origin_hue :
+    Possible origin
+      (origin.settle K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red)) :=
+  possible_of_open origin K.hue (origin_open K.hue) Hue.red (settable_hue Hue.red)
 
 theorem dichotomous_sw : ont.Dichotomous K.sw :=
   ⟨true, false, And.intro (fun h => nomatch h) (fun c =>
@@ -1028,6 +1244,16 @@ theorem switched_orients :
         switched.assign K.sw ≠ some b ∧ ∀ c, c = a ∨ c = b :=
   Config.dichotomous_orients (s := switched) dichotomous_sw ⟨true, rfl⟩
 
+theorem switched_excludes_off :
+    Config.Excluded switched K.sw false ∧
+      ¬ compat ⟨K.sw, true⟩ ⟨K.sw, false⟩ :=
+  Config.exclusive_excludes (by trivial)
+    (show switched.assign K.sw = some true from rfl)
+    (fun h => nomatch h)
+
+theorem switched_not_open : ¬ switched.Open K.sw :=
+  Config.settled_not_open ⟨true, rfl⟩
+
 theorem remainder_after_hue :
     Config.Remainder
       (origin.settle K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red)) :=
@@ -1060,6 +1286,32 @@ theorem actual_hue_red :
   ⟨origin.settle_settles K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red),
     rfl⟩
 
+def hued : Config coh :=
+  origin.settle K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red)
+
+theorem hued_red : hued.assign K.hue = some Hue.red :=
+  Assignment.set_self origin.assign K.hue Hue.red
+
+theorem hued_revise_green_ok :
+    coh.Settable hued.assign K.hue Hue.green :=
+  coh.settable_overwrite (k := K.hue) (v := Hue.red) (settable_hue Hue.green)
+
+def huedGreen : Config coh :=
+  hued.revise K.hue Hue.green hued_red (fun h => nomatch h) hued_revise_green_ok
+
+theorem hue_oscillates :
+    Config.Revises hued huedGreen K.hue Hue.green ∧
+      ¬ Config.Earlier hued huedGreen :=
+  ⟨hued.revise_revises K.hue Hue.green hued_red (fun h => nomatch h)
+      hued_revise_green_ok,
+    Config.revises_not_earlier
+      (hued.revise_revises K.hue Hue.green hued_red (fun h => nomatch h)
+        hued_revise_green_ok)⟩
+
+theorem possible_hue_revise : Possible hued huedGreen :=
+  possible_of_settled (v := Hue.green) hued K.hue hued_red
+    (fun h => nomatch h) hued_revise_green_ok
+
 def saturatedAssign : Assignment ont
   | .sw => some true
   | .lamp => some true
@@ -1090,6 +1342,18 @@ theorem saturated_not_remainder : ¬ saturated.Remainder := by
 Remainder is a property of configurations, not of the coherence. -/
 theorem world_not_remainderLaw : ¬ Config.RemainderLaw (C := coh) :=
   fun h => saturated_not_remainder (h saturated)
+
+theorem seen_hides_saturated :
+    (Config.restrict saturated seen).assign K.sw = none ∧
+      ¬ (Config.restrict saturated seen).articulated K.sw ∧
+      (Config.restrict saturated seen).assign K.hue = some Hue.red ∧
+      (Config.restrict saturated seen).assign K.lamp = some true ∧
+      (Config.restrict saturated seen).assign K.gap = none :=
+  let hs := Config.restrict_hides_kind (s := saturated) (r := seen) (k := K.sw) rfl
+  let hh := Config.restrict_keeps (s := saturated) (r := seen) (k := K.hue) rfl
+  let hl := Config.restrict_keeps (s := saturated) (r := seen) (k := K.lamp) rfl
+  let hg := Config.restrict_hides_kind (s := saturated) (r := seen) (k := K.gap) rfl
+  ⟨hs.1, hs.2, hh.1, hl.1, hg.1⟩
 
 end World
 
@@ -1148,5 +1412,35 @@ info: 'OpenSite.World.origin_hue_sw_cfg_diamond' depends on axioms: [Quot.sound]
 -/
 #guard_msgs in
 #print axioms World.origin_hue_sw_cfg_diamond
+
+/--
+info: 'OpenSite.World.hue_gap_sw_amalgamate' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms World.hue_gap_sw_amalgamate
+
+/--
+info: 'OpenSite.World.hue_oscillates' depends on axioms: [Quot.sound]
+-/
+#guard_msgs in
+#print axioms World.hue_oscillates
+
+/--
+info: 'OpenSite.World.seen_hides_saturated' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms World.seen_hides_saturated
+
+/--
+info: 'OpenSite.World.switched_excludes_off' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms World.switched_excludes_off
+
+/--
+info: 'OpenSite.World.possible_hue_revise' depends on axioms: [Quot.sound]
+-/
+#guard_msgs in
+#print axioms World.possible_hue_revise
 
 end OpenSite
