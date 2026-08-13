@@ -45,11 +45,12 @@
 \begin{abstract}
 A step is already ordinal, so a metaphysics that takes acts as primitive
 gets time almost free and has nowhere for extension to come from. This
-note starts from which determinations can be settled together. What
-holds, holds together: actuality is coherent partial settlement; space
-is independence and interaction in that coherence; time is the ancestral
-of articulative growth, kept apart from revision; the possible is unused
-coherence. Lean~4 checks the load-bearing claims in
+note starts from which determinations can be settled together. Locality
+is amalgamation, and it holds exactly when coherence is pairwise.
+Actualisation is determined exactly as far as coherence forces it; the
+free residue is not fillable by any function of the configuration.
+Time is the ancestral of drawing and settling; revision does not
+advance. Lean~4 checks the load-bearing claims in
 \texttt{OpenSite.lean}.
 \end{abstract}
 
@@ -69,146 +70,121 @@ has none. Under compossibility it completes: space is the structure of
 what can be settled together.
 
 The binary file is not retracted. It remains the right special case for
-promote-and-turn on dichotomous kinds. This note is the successor schema
-that can hold the rest of the stated ceiling.
+promote-and-turn on dichotomous kinds. This note is the successor schema.
 
 \section{Ceiling}
 
 What holds, holds together. A configuration is an admissible partial
 assignment of values to kinds, together with an articulation predicate.
-Actuality, in this thin sense, is that coherent partial settlement ---
-not a second dynamics, and not a focus that picks which kind to settle.
+Single-valuedness needs no exclusivity axiom: an assignment maps each
+kind to at most one value.
 
-Space is independence and interaction in the pairwise compatibility
-relation. Locality is amalgamation of independent settlements, a
-theorem. Time is the ancestral of articulative growth. Oscillation is
-revision of a value at fixed articulation. Those are two structures, so
-the arrow and the swirl do not compete for one relation. The possible is
-unused coherence: every coherent settle, grow, or revise. Observation is
-restriction to a region of kinds.
+Space is independence and interaction in pairwise compatibility.
+Locality is amalgamation of independent settlements, and that theorem
+is the content of taking compossibility to be pairwise, not a free
+lunch. Time is the ancestral of drawing a kind and settling an open
+one. Oscillation is revision at fixed articulation: it adds nothing,
+so it does not advance. The possible is unused coherence at an open
+kind. Observation is restriction to a region of kinds.
 
-Out of scope, on purpose: dimension, metric, signature, phenomenal
-duration, embodiment, consciousness, being-from-nothing, and
-$\omega$-history from seriality.
+Coherence can actualise only by narrowing. Where one value remains
+admissible, the kind is forced. Where two remain, it is free, and no
+selector or configuration-reading policy is respected there.
+
+Out of scope: dimension, metric, signature, phenomenal duration,
+embodiment, consciousness, being-from-nothing, and $\omega$-history
+from seriality.
 
 \section{The schema}
 
 \begin{definition}[Ontology]
-Kinds are types of values. Exclusivity is optional. Binary opposition is
-a property of some kinds, not the shape of the field.
+Kinds are types of values. Binary opposition is a property some kinds
+may have, not the shape of the field.
 \end{definition}
 
 \begin{definition}[Coherence]
 A pairwise compatibility relation on determinations, reflexive and
-symmetric, and irreflexive on distinct values of an exclusive kind.
-Higher-order (Borromean) constraints are declined: with those, locality
-would again be a stipulation.
+symmetric.
 \end{definition}
 
 A configuration is an admissible partial assignment together with an
-articulation predicate. Latency is already threefold: settled for,
-settled against (exclusive contrary), or unset. Articulation accumulates;
-values vary.
-
-\begin{formalresult}[Kind status]
-Undrawn, open, and settled are pairwise exclusive
-(\lean{settled\_not\_open}, \lean{settled\_not\_undrawn},
-\lean{open\_not\_undrawn}). They are exhaustive when articulation is
-decidable (\lean{kind\_status}). On an exclusive kind, a contrary is
-excluded and incompatible (\lean{exclusive\_excludes}). That is
-synchronic: it does not freeze the cell.
-\end{formalresult}
+articulation predicate. Articulation accumulates; values vary.
 
 \begin{definition}[Independence]
 Kinds $k$ and $\ell$ are independent when every pair of values is
 compatible.
 \end{definition}
 
-\begin{formalresult}[Locality is a theorem]
+\begin{formalresult}[Locality is a theorem of pairwise coherence]
 If $k$ and $\ell$ are independent and both are open at $\sigma$, then
 coherent settlements of each amalgamate to a coherent joint settlement,
 the two orders of update agree, and what is settable at $\ell$ is
-unchanged by settling $k$. Three pairwise-independent settlements
-amalgamate by iterating the pair theorem.
+unchanged by settling $k$.
 \end{formalresult}
 
 This is \lean{independent\_amalgamate}, \lean{independent\_commute},
-\lean{independent\_settable\_iff}, \lean{independent\_settle\_diamond},
-and \lean{independent\_amalgamate3}. The world model witnesses the
+and \lean{independent\_settable\_iff}. The world model witnesses the
 complement: switch-off and lamp-on are each admissible and jointly not
-(\lean{interaction\_blocks\_amalgamation}). Space here constrains what
-can happen. It is adjacency and independence, not dimension or metric.
+(\lean{interaction\_blocks\_amalgamation}).
+
+\begin{formalresult}[Locality needs pairwise generation]
+There is a downward-closed admissibility that is not pairwise: any two
+of three kinds may be settled positively, all three may not. Those
+kinds are compatible on every pair of values taken by themselves, each
+is separately settleable given the third, and they fail to amalgamate
+(\lean{locality\_needs\_pairwise}). So amalgamation is not derived from
+``being a constraint''; it is the content of taking constraints to be
+pairs. A Borromean world has no locality in this sense, and no amount
+of care about acts would restore it.
+\end{formalresult}
 
 \begin{definition}[Passages]
 Settling fills an open kind. Growing articulates a new kind, same
-assignment. Revising changes a value, same articulation. Time
-(\lean{Earlier}) is the ancestral of growth only.
+assignment. Revising changes a value, same articulation.
 \end{definition}
 
-\begin{formalresult}[The arrow is strict]
-\lean{Earlier} is irreflexive and asymmetric. Settling and revising do
-not enter it: they keep articulation fixed, so they are not growth.
+\begin{formalresult}[The arrow is drawing and settling]
+\lean{Advances} is monotone articulation, persistence of settled
+values, and something newly drawn or newly settled.
+\lean{Earlier} is the ancestral of growth and settlement. It is
+irreflexive and asymmetric. Revision draws nothing and settles nothing
+that was open, so it is no advance in either direction
+(\lean{revises\_not\_advances}).
 \end{formalresult}
 
-This is \lean{earlier\_irrefl}, \lean{earlier\_asymm},
-\lean{settles\_not\_earlier}, \lean{revises\_not\_earlier}. The world
-model witnesses a genuine step: the seed (only the gap articulated)
-grows to the origin (\lean{earlier\_seed\_origin}), and the origin is
-not earlier than itself or than the seed.
+The previous definition counted only drawing. Then a settlement and
+its result were unordered in both directions, and everything that
+happened to values happened outside time. Settling now moves the
+archive (\lean{settles\_earlier}, \lean{World.settling\_advances}).
+The world model revises hue from red to green without advancing
+(\lean{World.hue\_oscillates}).
 
-\begin{formalresult}[Revision is replacement]
-\lean{revise} overwrites a settled cell. Exclusivity does not block the
-new value: \lean{settable\_overwrite} is the diachronic fact. The world
-model revises hue from red to green, and that step is not
-\lean{Earlier} (\lean{World.hue\_oscillates}).
+\begin{formalresult}[Forcing, or how far coherence actualises]
+An open kind is \lean{Forced} when exactly one value remains
+settable, \lean{Free} when two or more remain. Forced kinds can be
+settled only one way. A respected selector at a forced kind is pinned
+to that value: it records what the constraints left
+(\lean{forced\_pins\_selector}). At a free kind, even a policy that
+reads the whole configuration is refuted, because plenitude supplies
+two settlements from the same source (\lean{free\_refutes\_policy}).
+Hence \lean{selection\_is\_redundant\_or\_refuted}: if a selection is
+respected at a settleable open kind, that kind was already forced.
 \end{formalresult}
 
-\begin{formalresult}[Possible is unused coherence]
-\lean{Possible} is coherent settle, grow, or revise. An open settable
-kind has a settle; an undrawn kind has a grow; a settled settable kind
-has a revise. Coherence alone does not yield a successor
-(\lean{productivity\_is\_not\_coherence\_level}): the inert passage
-relation is empty. A selector orients values, not which kind is
-settled; two settable values at an open kind exceed any such selector
-(\lean{plenitude\_exceeds\_selector}).
-\end{formalresult}
+The world model witnesses both sides. With the lamp on, the switch is
+forced to on (\lean{World.sw\_forced\_by\_lamp}). The hue at the origin
+is free, so no policy is respected there
+(\lean{World.no\_policy\_at\_hue}).
 
-\begin{formalresult}[Restriction is a sub-configuration]
-A region is a predicate on kinds. \lean{Config.restrict} keeps
-assignment and articulation on the region and hides the rest. That is
-veridical access, not consciousness. Illusion is a further primitive
-and is not derived from restriction. The saturated world, restricted to
-hue and lamp, keeps those values and hides switch and gap
-(\lean{World.seen\_hides\_saturated}).
-\end{formalresult}
-
-\begin{formalresult}[Remainder is optional]
-Pairwise compatibility does not force an open cell. A one-kind closed
-configuration has none (\lean{remainder\_not\_coherence\_level}); the
-same world that is open at the origin can be fully settled
-(\lean{World.world\_not\_remainderLaw}). Permanent latency is
-\lean{RemainderLaw}, not a theorem. What \emph{is} a theorem: settling
-one open kind leaves a different open kind open
-(\lean{settle\_preserves\_other\_open}), and growing an undrawn kind
-creates remainder (\lean{grow\_remainder}).
-\end{formalresult}
-
-\begin{formalresult}[Independence is not forced]
-A two-kind interacting coherence has no independent pair
-(\lean{independence\_not\_forced}). Space as independence is a structure
-some coherences have. The world model has both: hue is independent of
-switch, lamp, and gap; switch-off and lamp-on refuse to amalgamate.
-\end{formalresult}
-
-Binary opposition is recovered where it holds. On a dichotomous kind,
-settlement orients one value and excludes the other
-(\lean{dichotomous\_orients}); hue, with three values, is not
-dichotomous.
+Plenitude at an open kind is the constructors: every settable value has
+a settle. Coherence alone does not yield a successor
+(\lean{productivity\_is\_not\_coherence\_level}). Observation is
+restriction of an assignment to a region of kinds --- veridical
+access, not consciousness. Illusion is a further primitive.
 
 \section{Premises}
 
-The load-bearing assumption is pairwise \lean{compat}. Everything else
-in the ceiling is either a definition, a theorem, or an optional law.
+The load-bearing assumption is pairwise \lean{compat}.
 
 \begin{center}
 \small
@@ -219,193 +195,143 @@ in the ceiling is either a definition, a theorem, or an optional law.
 Item & Status & Role \\
 \midrule
 \lean{compat}
-  & primitive (refl, symm; exclusive irreflexive)
+  & primitive (refl, symm)
   & which determinations can be settled together \\
-\lean{Exclusive}, \lean{Dichotomous}
-  & optional properties of kinds
-  & synchronic exclusion; two-valued orientation \\
-\lean{RemainderLaw}
-  & optional
-  & permanent open cell; not a theorem of coherence \\
-\lean{Selector}
-  & optional, thin
-  & orients values; does not pick the kind \\
-Locality, the arrow, \lean{Possible}
-  & theorems or definitions
-  & amalgamation; ancestral of growth; unused coherence \\
+Locality
+  & theorem of pairwise generation
+  & amalgamation; fails for Borromean admissibility \\
+The arrow
+  & definition (draw and settle)
+  & irreflexive ancestral; revision excluded \\
+Forcing / freedom
+  & definitions, then theorems
+  & actualisation as far as constraints narrow \\
+\lean{Selector}, \lean{Policy}
+  & optional; redundant or refuted
+  & never an independent posit \\
+Plenitude at an open kind
+  & constructors
+  & every settable value has a settle \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-Plenitude, in the binary development, was an extra maximality axiom.
-Here the constructors already supply the witnesses. Counting those
-witnesses as \lean{Possible} is the one existential; it is not a second
-continuation relation that might be a proper subset.
-
 \section{Models}
-
-Four models keep the optional claims honest.
 
 \begin{itemize}
   \item \lean{Void}: null assignment, remainder. Presentation structure
         does not create actuality
         (\lean{nullity\_not\_derivable}).
-  \item \lean{Closed}: one settled exclusive kind, no remainder.
-        Permanent latency is not a theorem of coherence.
-  \item \lean{Locked}: switch and lamp only, no independent pair.
-        Independence is not a consequence of having kinds.
-  \item \lean{World}: hue, gap, switch, and lamp. Independent triples
-        amalgamate; switch-off and lamp-on do not. The origin is open;
-        a saturated assignment of the same kinds is not. Hue revises
-        without advancing \lean{Earlier}. Restriction to hue and lamp
-        hides the switch.
+  \item \lean{Borromean}: three-way admissibility, not pairwise.
+        Pairwise-looking independence fails to amalgamate.
+  \item \lean{World}: hue, gap, switch, and lamp. Hue amalgamates with
+        switch; switch-off and lamp-on do not. Lamp-on forces the
+        switch; hue at the origin is free. Seed grows to origin.
+        Hue revises without advancing.
 \end{itemize}
 
 \section{Objections}
 
 The binary paper answered thirteen objections in a flat list. Several
-are retired by the schema change (binary-only field, cadence as time,
-swirl-as-return, internally marked past). The rest group by what they
-target.
+are retired (binary-only field, cadence as time, internally marked
+past). The rest group by what they target.
 
 \subsection{Method}
 
 \paragraph{The conclusions are stipulated in the premises.}
-Some are. Pairwise compatibility is a primitive. \lean{RemainderLaw} and
-a selector, if used, are optional. The reply is a dependency audit, not
-a claim that Lean makes the primitives self-evident. The audit is
-stricter than in the binary file: locality is a theorem, not
-\lean{Continues.persists}; remainder and independence are not theorems
-of having a coherence; \lean{Possible} is packed from constructors
-rather than postulated as a maximal continuation relation.
+Pairwise compatibility is a primitive. The reply is a dependency
+audit. Locality is a theorem of that primitive, not of acts, and it
+fails when admissibility is not pairwise. Selection, if respected, is
+implied by forcing; if the kind is free, it is refuted.
 
 \paragraph{The models are artificial.}
-They are, in the proper sense of model constructions. Their role is to
-witness joint satisfiability and to catch packages that do not follow:
-nullity at presentation strength, remainder as a law, independence as a
-law. They are not empirical evidence and not a unique intended
-interpretation.
+They are, in the proper sense of model constructions. Void, Borromean,
+and World catch packages that do not follow: actuality from
+presentation, locality without pairs, selection at a free kind.
 
 \subsection{The field}
 
 \paragraph{Binary opposition is metaphysically reductive.}
-The binary file granted this: it stated what follows in the two-pole
-case. Here kinds are types of values. Dichotomy is a property some
-kinds have (\lean{World.dichotomous\_sw}) and hue does not
-(\lean{World.not\_dichotomous\_hue}). The reductive charge against the
-field as a whole no longer applies. A still richer account of
-continuous or dispositional determinables would need more than types of
-values; that is declined, not smuggled.
+Kinds are types of values. Hue has three. The reductive charge against
+the field as a whole no longer applies.
 
 \paragraph{Contrary determination has been confused with logical
 negation.}
-The types still prevent this. A value of an exclusive kind is not the
-negation of a proposition. Realization exclusivity relates them:
-distinct values of an exclusive kind are incompatible
-(\lean{exclusive\_incompat}), so at most one is assigned. That is ontic
-contrariety, not $\neg$.
+An assignment is a function, so a kind carries at most one value.
+That is not $\neg$. Compatibility between distinct determinations is a
+further pairwise fact, not logical denial.
 
 \paragraph{Pairwise compatibility is too weak; the world has
 Borromean constraints.}
-It is too weak for those constraints, and that is the point. With
-higher-order incompatibility, amalgamation of independent regions would
-again be a stipulation. Pairwise compatibility is the weakest primitive
-from which locality is a theorem. A metaphysics that needs Borromean
-structure must add it and give up that derivation.
+It is too weak for those constraints, and that is now a theorem
+(\lean{locality\_needs\_pairwise}). A metaphysics that needs
+irreducibly three-way incompatibility must add it and give up
+amalgamation.
 
 \subsection{Latency and possibility}
 
 \paragraph{Latency is merely a negative predicate.}
-At the broadest level, unset is non-assignment. The theory refines it
-into exclusion, openness, and undrawnness, pairwise exclusive, with
-synchronic exclusion of the contrary on exclusive kinds. What it does
-not supply is an intensional theory of powers or degrees. That remains
-an extension point.
+Unset is non-assignment. Open, settled, and undrawn are distinguished
+by articulation. What is not supplied is an intensional theory of
+powers or degrees.
 
 \paragraph{Plenitude is too strong.}
-In the binary file, maximality was extensionally the full lawful
-continuation relation, and the objection was well founded against
-presenting that as weak. Here there is no such axiom. Open, undrawn,
-and settled unused coherence each have a constructor. The remaining
-strength is the decision to count those constructors as
-\lean{Possible}, and the selector-excess theorem, which still needs two
-settable values at one open kind.
+There is no maximality axiom. The constructors supply a settle for
+every settable value at an open kind. The remaining strength is
+counting those as possible, which is what refutes a policy at a free
+kind.
 
 \paragraph{The non-nullity argument is circular.}
-There is no non-nullity argument. \lean{Void} shows that a coherent
-null configuration with remainder is admissible.
-\lean{RemainderLaw} is optional; \lean{Closed} and a saturated
-\lean{World} show it can fail. The valid claim is never creation of
-actuality from absolute nullity.
+There is no non-nullity argument. \lean{Void} is admissible.
 
 \subsection{Time}
 
 \paragraph{The archive simply stipulates the arrow of time.}
-\lean{Earlier} is defined as the ancestral of articulative growth.
-Irreflexivity and asymmetry are theorems of that definition, not of
-temporally neutral dynamics. The theory explains no-return along growth
-by a precise record principle (articulation strictly enlarges). It does
-not derive an arrow from laws that do not mention growth.
+\lean{Earlier} is defined as the ancestral of drawing and settling.
+Irreflexivity is a theorem of \lean{Advances}. The theory does not
+derive an arrow from laws that do not mention growth or settlement.
 
 \paragraph{Recurrence is not return.}
-Along \lean{Earlier}, yes: a growth chain cannot return to its source.
-At fixed articulation, no: \lean{revise} can restore a previous value,
-and that step is not earlier. The binary swirl used fresh trace
-carriage to keep qualitative reversal from being identity of
-presentations. This schema has no traces. The honest slogan is
-narrower: growth does not return; revision at fixed articulation can.
+Along \lean{Earlier}, a chain cannot return to its source. Revision
+can restore a previous value and is no advance. The honest slogan:
+drawing and settling do not return; revision at fixed articulation
+can.
 
 \paragraph{This is not lived time.}
-Correct. There is no cadence, duration, tempo, anticipation, affect, or
-embodiment. There is also no internally marked past: trace encoding was
-a binary-file premise, declined here rather than re-stipulated.
-\lean{Earlier} is a strict partial order generated by growth, not an
-ordinal, not $\omega$-history, and not a formal present or future.
+Correct. No cadence, duration, or internally marked past.
 
 \subsection{Space}
 
 \paragraph{Independence is not space.}
-It is not dimension, metric, or signature. It is the product structure
-of the coherence complex: which kinds constrain which. A coherence
-complex has a shape; nothing in the primitives makes that shape
-three-dimensional. Causal set theory has been stuck at the analogous
-point with more machinery. Adjacency and commuting updates, yes;
-relativistic spacetime, no.
+It is not dimension or metric. It is which kinds constrain which.
+Adjacency and commuting updates, yes; relativistic spacetime, no.
 
 \paragraph{Independence is smuggled as a law of kinds.}
-It is not. \lean{Locked} has two kinds and no independent pair.
-Independence is a structure some coherences have.
+It is not. Switch and lamp interact in World; hue does not interact
+with switch.
 
 \subsection{Actuality and observation}
 
 \paragraph{A selector makes determinacy trivial.}
-The selector only orients values. Which kind is settled remains a
-choice. Even the value-orientation is exceeded by two settable values
-at one open kind. There is no focus, no cadence, and no unique
-successor configuration.
+Where the kind is forced, the selector is redundant. Where it is
+free, no selector or policy is respected. Determinacy is exactly the
+forcing; there is no further posit.
 
 \paragraph{Restriction does not explain experience.}
-It does not. \lean{Config.restrict} is veridical access to a region of
-kinds. It does not supply consciousness, error, salience, or phenomenal
-character. Illusion is a further primitive; identifying observation
-with restriction so tightly that illusion becomes inexpressible was
-rejected in the diagnosis.
+It does not. Restriction is veridical access to a region of kinds.
+Illusion is extra.
 
 \section{Scope}
 
-Adjacency, independence, commuting updates, and a strict order of
-articulative growth, yes. Dimension, metric, signature, phenomenal
-duration, embodiment, and $\omega$-history, no. A construction that
-succeeds at a stated target beats one that half-succeeds at an unstated
-one.
+Adjacency, independence, commuting updates, forcing, and a strict
+order of drawing and settling, yes. Dimension, metric, phenomenal
+duration, embodiment, and $\omega$-history, no.
 
-What is carried over from the binary project: unlabelled (now un-$n$-ary)
-kinds, unused coherence as the unique existential, internal articulation
-from the start, and the impossibility results as design constraints.
-What is rejected: a binary-only field; identifying observation with
-restriction so tightly that illusion becomes inexpressible; claiming
-metric structure; treating remainder, independence, or seriality as
-theorems of coherence.
+What is carried over: unlabelled (now un-$n$-ary) kinds, unused
+coherence as the unique existential, internal articulation from the
+start. What is rejected: a binary-only field; acts as the spatial
+primitive; selection as an independent actualiser; locality without
+pairwise generation.
 
 \section{Check}
 
@@ -415,7 +341,7 @@ elan run leanprover/lean4:v4.24.0 lean OpenSite.lean
 
 A successful check exits without output. No \texttt{axiom},
 \texttt{sorry}, \texttt{admit}, or \texttt{native\_decide}. The
-commuting-assignment diamonds, overwrite, and the hue-revise route use
+commuting-assignment diamonds and the hue-revise route use
 \lean{Quot.sound} (from \texttt{funext}). The other checked routes are
 axiom-free.
 

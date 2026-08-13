@@ -192,24 +192,23 @@ acts. A step is already ordinal, so an act-first primitive gets time
 almost free and has nowhere for extension to come from.
 
 Kinds are types of values. Pairwise compatibility says which
-determinations can be settled together. Independence is the spatial
-primitive; locality (amalgamation of independent settlements) is a
-theorem, not a clause on acts. Articulation accumulates and values vary,
-as two structures. Time is the ancestral of articulative growth.
-Plenitude is the one existential. Observation is restriction to a region.
-Dimension and metric are out of scope.
+determinations can be settled together. Locality (amalgamation of
+independent settlements) is a theorem of that pairwise generation, and
+fails for a Borromean admissibility. Time is the ancestral of drawing
+and settling; revision does not advance. Coherence actualises only by
+narrowing: forced kinds pin any respected selector; free kinds refute
+every policy.
 
 | Result | Lean declaration |
 | --- | --- |
-| Independent settlements amalgamate and commute | <code>independent_amalgamate</code>, <code>independent_commute</code>, <code>independent_settle_diamond</code> |
-| Constraint-locality: settling an independent kind does not change what is settable at the other | <code>independent_settable_iff</code> |
-| Time's arrow is irreflexive; settle and revise are not earlier | <code>earlier_irrefl</code>, <code>settles_not_earlier</code>, <code>revises_not_earlier</code> |
-| Coherence does not yield a successor | <code>productivity_is_not_coherence_level</code> |
-| Remainder is not a theorem of coherence | <code>remainder_not_coherence_level</code>, <code>World.world_not_remainderLaw</code> |
-| Independence is not forced by having kinds | <code>independence_not_forced</code> |
-| Plenitude exceeds any value-selector | <code>plenitude_exceeds_selector</code> |
-| Dichotomous settlement orients; hue is not dichotomous | <code>dichotomous_orients</code>, <code>World.not_dichotomous_hue</code> |
+| Independent settlements amalgamate and commute | <code>independent_amalgamate</code>, <code>independent_commute</code> |
+| Locality needs pairwise generation | <code>locality_needs_pairwise</code> |
+| Settling advances; revision does not | <code>settles_earlier</code>, <code>revises_not_advances</code> |
+| No return | <code>earlier_irrefl</code> |
+| Forced vs free; selection redundant or refuted | <code>Forcing.selection_is_redundant_or_refuted</code> |
+| Lamp-on forces the switch; hue is free | <code>World.sw_forced_by_lamp</code>, <code>World.hue_free_at_origin</code> |
 | Interaction blocks amalgamation | <code>World.interaction_blocks_amalgamation</code> |
+| Coherence does not yield a successor | <code>productivity_is_not_coherence_level</code> |
 
 The binary file is not retracted. It remains the right special case for
 promote-and-turn on dichotomous kinds.
