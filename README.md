@@ -137,9 +137,10 @@ Lake project or <code>lean-toolchain</code> file, so the explicit version in the
 command makes the check reproducible. This checkout also passes Lean 4.33.0
 (with one non-fatal universe-linter warning).
 
-The final four <code>#guard_msgs</code> blocks are executable regressions over
+The final <code>#guard_msgs</code> blocks are executable regressions over
 <code>#print axioms</code>. Under Lean 4.24.0 they report only
-<code>propext</code> and <code>Quot.sound</code> for the checked concrete routes.
+<code>Quot.sound</code> for the commuting-assignment diamonds, and no
+axioms for the other checked routes.
 The source contains no <code>axiom</code>, <code>sorry</code>,
 <code>admit</code>, or <code>native_decide</code>.
 
@@ -197,6 +198,18 @@ theorem, not a clause on acts. Articulation accumulates and values vary,
 as two structures. Time is the ancestral of articulative growth.
 Plenitude is the one existential. Observation is restriction to a region.
 Dimension and metric are out of scope.
+
+| Result | Lean declaration |
+| --- | --- |
+| Independent settlements amalgamate and commute | <code>independent_amalgamate</code>, <code>independent_commute</code>, <code>independent_settle_diamond</code> |
+| Constraint-locality: settling an independent kind does not change what is settable at the other | <code>independent_settable_iff</code> |
+| Time's arrow is irreflexive; settle and revise are not earlier | <code>earlier_irrefl</code>, <code>settles_not_earlier</code>, <code>revises_not_earlier</code> |
+| Coherence does not yield a successor | <code>productivity_is_not_coherence_level</code> |
+| Remainder is not a theorem of coherence | <code>remainder_not_coherence_level</code>, <code>World.world_not_remainderLaw</code> |
+| Independence is not forced by having kinds | <code>independence_not_forced</code> |
+| Plenitude exceeds any value-selector | <code>plenitude_exceeds_selector</code> |
+| Dichotomous settlement orients; hue is not dichotomous | <code>dichotomous_orients</code>, <code>World.not_dichotomous_hue</code> |
+| Interaction blocks amalgamation | <code>World.interaction_blocks_amalgamation</code> |
 
 The binary file is not retracted. It remains the right special case for
 promote-and-turn on dichotomous kinds.

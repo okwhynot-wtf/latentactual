@@ -34,6 +34,8 @@ dimension or metric.
 The load-bearing claim, tested below: **locality is a theorem.**  If two
 kinds are independent, coherent settlements of each amalgamate to a
 coherent joint settlement, and the two orders of update agree.
+Remainder and independence are not theorems of having a coherence:
+countermodels `Closed` and `Locked` show each can fail.
 -/
 
 namespace OpenSite
@@ -369,32 +371,153 @@ def Revises (s t : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
     t.assign = Assignment.set s.assign k v ∧
     ∃ w, s.assign k = some w ∧ w ≠ v
 
+def Excluded (s : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
+  ∃ w, s.assign k = some w ∧ w ≠ v
+
+/-- On a dichotomous kind, settlement orients one value and excludes the
+other.  The old `resolution_orients`, recovered as a special case. -/
+theorem dichotomous_orients {s : Config C} {k : O.Kind}
+    (hd : O.Dichotomous k) (h : Settled s k) :
+    ∃ a b : O.Value k,
+      a ≠ b ∧ s.assign k = some a ∧ s.assign k ≠ some b ∧
+        ∀ c, c = a ∨ c = b := by
+  obtain ⟨a, b, hne, hall⟩ := hd
+  obtain ⟨v, hv⟩ := h
+  cases hall v with
+  | inl hva =>
+      cases hva
+      refine ⟨a, b, hne, hv, ?_, hall⟩
+      intro hb
+      exact hne (Option.some.inj (hv.symm.trans hb))
+  | inr hvb =>
+      cases hvb
+      refine ⟨b, a, Ne.symm hne, hv, ?_, ?_⟩
+      · intro ha
+        exact hne (Option.some.inj (ha.symm.trans hv))
+      · intro c
+        cases hall c with
+        | inl hca => exact Or.inr hca
+        | inr hcb => exact Or.inl hcb
+
 def settle (s : Config C) (k : O.Kind) (v : O.Value k)
-    (ho : Open s k)
-    (hok : C.PairwiseOk (Assignment.set s.assign k v)) : Config C where
+    (ho : Open s k) (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
+    Config C where
   articulated := s.articulated
   assign := Assignment.set s.assign k v
-  realised_articulated := by
-    intro k' v' hv'
-    haveI := O.decEqKind
-    by_cases hk' : k' = k
-    · subst hk'
-      exact ho.1
-    · rw [Assignment.set_ne s.assign k v k' hk'] at hv'
-      exact s.realised_articulated k' v' hv'
+  realised_articulated := fun k' v' hv' =>
+    Assignment.realised_set_cases hv'
+      (fun eq _ => by cases eq; exact ho.1)
+      (fun _ hs => s.realised_articulated k' v' hs)
   ok := hok
 
 theorem settle_settles (s : Config C) (k : O.Kind) (v : O.Value k)
-    (ho : Open s k)
-    (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
+    (ho : Open s k) (hok : C.PairwiseOk (Assignment.set s.assign k v)) :
     Settles s (settle s k v ho hok) k v :=
   ⟨ho, rfl, fun _ => Iff.rfl⟩
+
+def grow (s : Config C) (k : O.Kind) (_hund : Undrawn s k) : Config C where
+  articulated := fun k' => s.articulated k' ∨ k' = k
+  assign := s.assign
+  realised_articulated := fun k' v' hv' =>
+    Or.inl (s.realised_articulated k' v' hv')
+  ok := s.ok
+
+theorem grow_grows (s : Config C) (k : O.Kind) (hund : Undrawn s k) :
+    Grows s (grow s k hund) :=
+  ⟨fun _ h => Or.inl h, ⟨k, Or.inr rfl, hund⟩, rfl⟩
+
+theorem undrawn_unassigned {s : Config C} {k : O.Kind}
+    (h : Undrawn s k) : s.assign k = none := by
+  cases h' : s.assign k with
+  | none => rfl
+  | some v => exact False.elim (h (s.realised_articulated k v h'))
+
+theorem grow_remainder (s : Config C) (k : O.Kind) (hund : Undrawn s k) :
+    Remainder (grow s k hund) :=
+  ⟨k, Or.inr rfl, by
+    change s.assign k = none
+    exact undrawn_unassigned hund⟩
+
+theorem open_after_settle {s : Config C} {k : O.Kind} {v : O.Value k}
+    {ℓ : O.Kind}
+    (ho : Open s k) (hok : C.PairwiseOk (Assignment.set s.assign k v))
+    (hne : ℓ ≠ k) (hoℓ : Open s ℓ) :
+    Open (settle s k v ho hok) ℓ :=
+  ⟨hoℓ.1, by
+    change Assignment.set s.assign k v ℓ = none
+    rw [Assignment.set_ne _ _ _ _ hne]
+    exact hoℓ.2⟩
+
+/-- Settling one open kind does not close a different open kind.  Remainder
+after a settle is this local fact, not a global law. -/
+theorem settle_preserves_other_open {s : Config C} {k ℓ : O.Kind}
+    {v : O.Value k}
+    (ho : Open s k) (hok : C.PairwiseOk (Assignment.set s.assign k v))
+    (hne : ℓ ≠ k) (hoℓ : Open s ℓ) :
+    Remainder (settle s k v ho hok) :=
+  ⟨ℓ, open_after_settle ho hok hne hoℓ⟩
+
+/-- Independent settlements commute at configuration level. -/
+theorem independent_settle_diamond {s : Config C} {k ℓ : O.Kind}
+    {v : O.Value k} {w : O.Value ℓ}
+    (hI : C.Independent k ℓ)
+    (hok : Open s k) (hoℓ : Open s ℓ)
+    (hsv : C.Settable s.assign k v) (hsw : C.Settable s.assign ℓ w) :
+    Assignment.set (settle s k v hok hsv).assign ℓ w =
+      Assignment.set (settle s ℓ w hoℓ hsw).assign k v ∧
+    C.PairwiseOk (Assignment.set (settle s k v hok hsv).assign ℓ w) :=
+  C.independent_commute hI hok.2 hoℓ.2 hsv hsw
 
 /-- Time's arrow: the ancestral of archive growth.  Revision does not
 enter this relation. -/
 inductive Earlier : Config C → Config C → Prop
   | step {s t} : Grows s t → Earlier s t
   | trans {s t u} : Earlier s t → Earlier t u → Earlier s u
+
+theorem earlier_mono {s t : Config C} (h : Earlier s t) :
+    ∀ k, s.articulated k → t.articulated k := by
+  induction h with
+  | step g => exact g.1
+  | trans _ _ ih1 ih2 =>
+      intro k hk
+      exact ih2 k (ih1 k hk)
+
+theorem earlier_strict {s t : Config C} (h : Earlier s t) :
+    ∃ k, t.articulated k ∧ ¬ s.articulated k := by
+  induction h with
+  | step g => exact g.2.1
+  | trans h1 _ ih1 ih2 =>
+      obtain ⟨ℓ, hu, hnt⟩ := ih2
+      exact ⟨ℓ, hu, fun hs => hnt (earlier_mono h1 ℓ hs)⟩
+
+theorem earlier_irrefl (s : Config C) : ¬ Earlier s s := by
+  intro h
+  obtain ⟨k, hk, hnk⟩ := earlier_strict h
+  exact hnk hk
+
+theorem earlier_asymm {s t : Config C} (h : Earlier s t) : ¬ Earlier t s :=
+  fun h' => earlier_irrefl s (Earlier.trans h h')
+
+theorem settles_not_earlier {s t : Config C} {k : O.Kind} {v : O.Value k}
+    (h : Settles s t k v) : ¬ Earlier s t := by
+  intro he
+  obtain ⟨ℓ, ht, hs⟩ := earlier_strict he
+  exact hs ((h.2.2 ℓ).mp ht)
+
+theorem revises_not_earlier {s t : Config C} {k : O.Kind} {v : O.Value k}
+    (h : Revises s t k v) : ¬ Earlier s t := by
+  intro he
+  obtain ⟨ℓ, ht, hs⟩ := earlier_strict he
+  exact hs ((h.1 ℓ).mp ht)
+
+/-- Optional: every configuration leaves some articulated kind unset.
+Permanent latency is this law, not a theorem of coherence. -/
+def RemainderLaw : Prop := ∀ s : Config C, Remainder s
+
+theorem remainderLaw_of {s t : Config C} {k : O.Kind} {v : O.Value k}
+    (hR : RemainderLaw (O := O) (C := C)) (_h : Settles s t k v) :
+    Remainder t :=
+  hR t
 
 end Config
 
@@ -448,6 +571,19 @@ theorem plenitude_exceeds_selector {O : Ontology.{u,v}} {C : Coherence O}
   obtain ⟨t, ht⟩ := hP.2 v hv
   obtain ⟨t', ht'⟩ := hP.2 w hw
   exact hne ((hres ht).trans (hres ht').symm)
+
+/-- Actuality is a selector on values, not a second dynamics.  Which kind
+is settled remains a choice; the selector only orients the value. -/
+def Actual {O : Ontology.{u,v}} {C : Coherence O} (sel : Selector O)
+    (s t : Config C) (k : O.Kind) (v : O.Value k) : Prop :=
+  Config.Settles s t k v ∧ v = sel.choose k
+
+theorem actual_value_determinate {O : Ontology.{u,v}} {C : Coherence O}
+    {sel : Selector O} {s t t' : Config C} {k : O.Kind}
+    {v w : O.Value k}
+    (h : Actual (C := C) sel s t k v)
+    (h' : Actual (C := C) sel s t' k w) : v = w :=
+  h.2.trans h'.2.symm
 
 /-! ## 5. Observation as restricted access
 
@@ -529,6 +665,130 @@ theorem nullity_not_derivable :
     ∃ (O : Ontology.{0,0}) (C : Coherence O) (s : Config C),
       s.Null ∧ s.Remainder :=
   ⟨Void.ont, Void.coh, Void.emptyCfg, Void.nullity_coherent⟩
+
+/-! ## 6b. Closed: remainder is not a theorem of coherence
+
+A fully settled exclusive kind has no open cell.  Permanent latency is
+`RemainderLaw`, optional, not derived from pairwise compatibility. -/
+
+namespace Closed
+
+inductive K where
+  | only
+  deriving DecidableEq
+
+abbrev ont : Ontology.{0,0} where
+  Kind := K
+  Value := fun _ => Bool
+  Exclusive := fun _ => True
+  decEqKind := inferInstance
+
+def compat : ont.Det → ont.Det → Prop
+  | ⟨.only, a⟩, ⟨.only, b⟩ => a = b
+
+abbrev coh : Coherence ont where
+  compat := compat
+  refl := by intro d; cases d with | mk k v => cases k; exact rfl
+  symm := by
+    intro d e h
+    cases d with | mk k₁ v₁ =>
+    cases e with | mk k₂ v₂ =>
+    cases k₁; cases k₂
+    exact h.symm
+  exclusive_incompat := by
+    intro k v w _ hne h
+    cases k
+    exact hne h
+
+def fullAssign : Assignment ont
+  | .only => some true
+
+def full : Config coh where
+  articulated := fun _ => True
+  assign := fullAssign
+  realised_articulated := fun _ _ _ => trivial
+  ok := by
+    intro k ℓ vk vl hk hl
+    cases k; cases ℓ
+    simp only [fullAssign] at hk hl
+    cases hk; cases hl
+    exact rfl
+
+theorem settled : full.Settled K.only :=
+  ⟨true, rfl⟩
+
+theorem not_remainder : ¬ full.Remainder := by
+  intro ⟨k, _, hnone⟩
+  cases k
+  exact Option.noConfusion (hnone : fullAssign K.only = none)
+
+theorem not_remainderLaw : ¬ Config.RemainderLaw (C := coh) :=
+  fun h => not_remainder (h full)
+
+end Closed
+
+theorem remainder_not_coherence_level :
+    ∃ (O : Ontology.{0,0}) (C : Coherence O),
+      ¬ Config.RemainderLaw (C := C) :=
+  ⟨Closed.ont, Closed.coh, Closed.not_remainderLaw⟩
+
+/-! ## 6c. Locked: independence is not forced
+
+Two interacting kinds, no independent pair.  Space as independence is a
+structure some coherences have, not a consequence of having kinds. -/
+
+namespace Locked
+
+inductive K where
+  | sw | lamp
+  deriving DecidableEq
+
+def Val : K → Type
+  | .sw => Bool
+  | .lamp => Bool
+
+abbrev ont : Ontology.{0,0} where
+  Kind := K
+  Value := Val
+  Exclusive := fun _ => True
+  decEqKind := inferInstance
+
+def compat (d e : ont.Det) : Prop :=
+  match d.kind, e.kind, d.value, e.value with
+  | .sw, .sw, a, b => a = b
+  | .lamp, .lamp, a, b => a = b
+  | .sw, .lamp, a, b => ¬ (a = false ∧ b = true)
+  | .lamp, .sw, a, b => ¬ (b = false ∧ a = true)
+
+abbrev coh : Coherence ont where
+  compat := compat
+  refl := by
+    intro d
+    cases d with | mk k v =>
+    cases k <;> exact rfl
+  symm := by
+    intro d e h
+    cases d with | mk k₁ v₁ =>
+    cases e with | mk k₂ v₂ =>
+    cases k₁ <;> cases k₂ <;> first | exact h.symm | exact h
+  exclusive_incompat := by
+    intro k v w _ hne h
+    cases k <;> exact hne h
+
+theorem no_independent_pair (k ℓ : K) : ¬ coh.Independent k ℓ := by
+  intro ⟨hne, hall⟩
+  cases k <;> cases ℓ
+  · exact hne rfl
+  · exact hall false true ⟨rfl, rfl⟩
+  · exact hall true false ⟨rfl, rfl⟩
+  · exact hne rfl
+
+end Locked
+
+theorem independence_not_forced :
+    ∃ (O : Ontology.{0,0}) (C : Coherence O),
+      ∀ k ℓ : O.Kind, ¬ C.Independent k ℓ :=
+  ⟨Locked.ont, Locked.coh, Locked.no_independent_pair⟩
 
 /-! ## 7. A world: independence, interaction, amalgamation -/
 
@@ -707,6 +967,130 @@ theorem seed_grows_origin : Config.Grows seed origin := by
 theorem earlier_seed_origin : Config.Earlier seed origin :=
   Config.Earlier.step seed_grows_origin
 
+theorem origin_not_earlier_self : ¬ Config.Earlier origin origin :=
+  Config.earlier_irrefl origin
+
+theorem origin_not_earlier_seed : ¬ Config.Earlier origin seed :=
+  Config.earlier_asymm earlier_seed_origin
+
+theorem origin_remainder : origin.Remainder :=
+  ⟨K.gap, origin_open K.gap⟩
+
+theorem dichotomous_sw : ont.Dichotomous K.sw :=
+  ⟨true, false, And.intro (fun h => nomatch h) (fun c =>
+    match c with
+    | true => Or.inl rfl
+    | false => Or.inr rfl)⟩
+
+theorem not_dichotomous_hue : ¬ ont.Dichotomous K.hue := by
+  intro ⟨a, b, hne, hall⟩
+  cases a with
+  | red =>
+    cases b with
+    | red => exact hne rfl
+    | green =>
+      cases hall Hue.blue with
+      | inl h => nomatch h
+      | inr h => nomatch h
+    | blue =>
+      cases hall Hue.green with
+      | inl h => nomatch h
+      | inr h => nomatch h
+  | green =>
+    cases b with
+    | red =>
+      cases hall Hue.blue with
+      | inl h => nomatch h
+      | inr h => nomatch h
+    | green => exact hne rfl
+    | blue =>
+      cases hall Hue.red with
+      | inl h => nomatch h
+      | inr h => nomatch h
+  | blue =>
+    cases b with
+    | red =>
+      cases hall Hue.green with
+      | inl h => nomatch h
+      | inr h => nomatch h
+    | green =>
+      cases hall Hue.red with
+      | inl h => nomatch h
+      | inr h => nomatch h
+    | blue => exact hne rfl
+
+def switched : Config coh :=
+  origin.settle K.sw true (origin_open K.sw) (coh.settable_empty K.sw true)
+
+theorem switched_orients :
+    ∃ a b : Val K.sw,
+      a ≠ b ∧ switched.assign K.sw = some a ∧
+        switched.assign K.sw ≠ some b ∧ ∀ c, c = a ∨ c = b :=
+  Config.dichotomous_orients (s := switched) dichotomous_sw ⟨true, rfl⟩
+
+theorem remainder_after_hue :
+    Config.Remainder
+      (origin.settle K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red)) :=
+  Config.settle_preserves_other_open
+    (origin_open K.hue) (settable_hue Hue.red)
+    (by decide) (origin_open K.sw)
+
+theorem origin_hue_sw_cfg_diamond :
+    Assignment.set
+        (origin.settle K.hue Hue.red (origin_open K.hue)
+          (settable_hue Hue.red)).assign
+        K.sw true =
+      Assignment.set
+        (origin.settle K.sw true (origin_open K.sw)
+          (coh.settable_empty K.sw true)).assign
+        K.hue Hue.red ∧
+    coh.PairwiseOk
+      (Assignment.set
+        (origin.settle K.hue Hue.red (origin_open K.hue)
+          (settable_hue Hue.red)).assign
+        K.sw true) :=
+  Config.independent_settle_diamond independent_hue_sw
+    (origin_open K.hue) (origin_open K.sw)
+    (settable_hue Hue.red) (coh.settable_empty K.sw true)
+
+theorem actual_hue_red :
+    Actual sel origin
+      (origin.settle K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red))
+      K.hue Hue.red :=
+  ⟨origin.settle_settles K.hue Hue.red (origin_open K.hue) (settable_hue Hue.red),
+    rfl⟩
+
+def saturatedAssign : Assignment ont
+  | .sw => some true
+  | .lamp => some true
+  | .hue => some Hue.red
+  | .gap => some false
+
+def saturated : Config coh where
+  articulated := allArt
+  assign := saturatedAssign
+  realised_articulated := fun _ _ _ => trivial
+  ok := by
+    intro k ℓ vk vl hk hl
+    cases k <;> cases ℓ <;>
+      simp only [saturatedAssign] at hk hl <;>
+      cases Option.some.inj hk <;>
+      cases Option.some.inj hl <;>
+      first | exact rfl | trivial | (intro h; exact nomatch h.1) | (intro h; exact nomatch h.2)
+
+theorem saturated_not_remainder : ¬ saturated.Remainder := by
+  intro ⟨k, _, hnone⟩
+  cases k with
+  | sw => exact Option.noConfusion (hnone : saturatedAssign K.sw = none)
+  | lamp => exact Option.noConfusion (hnone : saturatedAssign K.lamp = none)
+  | hue => exact Option.noConfusion (hnone : saturatedAssign K.hue = none)
+  | gap => exact Option.noConfusion (hnone : saturatedAssign K.gap = none)
+
+/-- The same world that is open at the origin can be fully settled.
+Remainder is a property of configurations, not of the coherence. -/
+theorem world_not_remainderLaw : ¬ Config.RemainderLaw (C := coh) :=
+  fun h => saturated_not_remainder (h saturated)
+
 end World
 
 /-! ## Axiom regression -/
@@ -734,5 +1118,35 @@ info: 'OpenSite.productivity_is_not_coherence_level' does not depend on any axio
 -/
 #guard_msgs in
 #print axioms productivity_is_not_coherence_level
+
+/--
+info: 'OpenSite.remainder_not_coherence_level' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms remainder_not_coherence_level
+
+/--
+info: 'OpenSite.independence_not_forced' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms independence_not_forced
+
+/--
+info: 'OpenSite.World.origin_not_earlier_self' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms World.origin_not_earlier_self
+
+/--
+info: 'OpenSite.World.world_not_remainderLaw' does not depend on any axioms
+-/
+#guard_msgs in
+#print axioms World.world_not_remainderLaw
+
+/--
+info: 'OpenSite.World.origin_hue_sw_cfg_diamond' depends on axioms: [Quot.sound]
+-/
+#guard_msgs in
+#print axioms World.origin_hue_sw_cfg_diamond
 
 end OpenSite
