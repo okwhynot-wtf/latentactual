@@ -1,0 +1,145 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{microtype}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{linkblue}{HTML}{1F4E79}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkblue,
+  citecolor=linkblue,
+  urlcolor=linkblue,
+  pdftitle={Open Sites: From Compossibility},
+  pdfauthor={Latent-Actual Project},
+  pdfsubject={A Lean-native successor schema}
+}
+
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=0.35em, topsep=0.5em}
+
+\newtheorem{formalresult}{Formal result}[section]
+\theoremstyle{definition}
+\newtheorem{definition}[formalresult]{Definition}
+
+\newcommand{\lean}[1]{\nolinkurl{#1}}
+
+\title{\textbf{Open Sites}\\[0.45em]
+  \large Start from compossibility}
+\author{Latent--Actual Project}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A step is already ordinal, so a metaphysics that takes acts as primitive
+gets time almost free and has nowhere for extension to come from. This
+note starts from which determinations can be settled together. Space is
+the independence structure of that coherence; locality is a theorem
+about amalgamation; time is the ancestral of articulative growth, kept
+apart from revision. Lean~4 checks the load-bearing claims in
+\texttt{OpenSite.lean}.
+\end{abstract}
+
+\section{The diagnosis}
+
+The binary latent--actual development, and the first draft of Open Sites,
+both took a step as primitive. Seed, cadence, offer, rank, and
+\lean{Continues.persists} are elaborations of that sequential peg.
+\lean{Continues.persists} stipulated that an act disturbs one kind, which
+is exactly the clause that prevents spatial content: nothing in the
+primitive said which determinations constrain which.
+
+The test is: for each target notion, complete ``$X$ would be ---, in
+terms of the primitives.'' If the sentence has no completion, the notion
+will not be derived. Under an act-first schema, ``space would be ---''
+has none. Under compossibility it completes: space is the structure of
+what can be settled together.
+
+\section{The schema}
+
+\begin{definition}[Ontology]
+Kinds are types of values. Exclusivity is optional. Binary opposition is
+a property of some kinds, not the shape of the field.
+\end{definition}
+
+\begin{definition}[Coherence]
+A pairwise compatibility relation on determinations, reflexive and
+symmetric, and irreflexive on distinct values of an exclusive kind.
+Higher-order (Borromean) constraints are declined: with those, locality
+would again be a stipulation.
+\end{definition}
+
+A configuration is an admissible partial assignment together with an
+articulation predicate. Latency is already threefold: settled for,
+settled against (exclusive contrary), or unset. Articulation accumulates;
+values vary. Those are two structures, so the arrow of time and
+oscillation do not compete for one relation.
+
+\begin{definition}[Independence]
+Kinds $k$ and $\ell$ are independent when every pair of values is
+compatible.
+\end{definition}
+
+\begin{formalresult}[Locality is a theorem]
+If $k$ and $\ell$ are independent and both are open at $\sigma$, then
+coherent settlements of each amalgamate to a coherent joint settlement,
+the two orders of update agree, and what is settable at $\ell$ is
+unchanged by settling $k$.
+\end{formalresult}
+
+This is \lean{independent\_amalgamate}, \lean{independent\_commute}, and
+\lean{independent\_settable\_iff}. The world model witnesses the
+complement: switch-off and lamp-on are each admissible and jointly not
+(\lean{interaction\_blocks\_amalgamation}). Space here constrains what
+can happen. It is adjacency and independence, not dimension or metric.
+
+\begin{definition}[Passages]
+Settling fills an open kind. Growing articulates a new kind, same
+assignment. Revising changes a value, same articulation. Time
+(\lean{Earlier}) is the ancestral of growth only.
+\end{definition}
+
+Existential force sits in one place: plenitude says every coherent settle
+of an open kind is possible. Coherence alone does not yield a successor
+(\lean{productivity\_is\_not\_coherence\_level}). Observation is
+restriction to a region of kinds --- veridical access, not consciousness.
+Illusion is a further primitive and is not derived from restriction.
+
+\section{Scope}
+
+Adjacency, independence, commuting updates, ordinal succession, and
+topological extension, yes. Dimension, metric, signature, phenomenal
+duration, and embodiment, no. A coherence complex has a shape; nothing
+so far makes that shape three-dimensional. Causal set theory has been
+stuck at the analogous point with more machinery. A construction that
+succeeds at a stated target beats one that half-succeeds at an unstated
+one.
+
+What is carried over from the binary project: unlabelled (now un-$n$-ary)
+kinds, plenitude as the unique existential, internal articulation from
+the start, and the impossibility results as design constraints. What is
+rejected: a binary-only field; identifying observation with restriction
+so tightly that illusion becomes inexpressible; claiming metric structure.
+
+\section{Check}
+
+\begin{verbatim}
+elan run leanprover/lean4:v4.24.0 lean OpenSite.lean
+\end{verbatim}
+
+A successful check exits without output. No \texttt{axiom},
+\texttt{sorry}, \texttt{admit}, or \texttt{native\_decide}.
+
+\end{document}
